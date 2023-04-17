@@ -178,12 +178,6 @@ function App() {
     }
 
     React.useEffect(() => {
-        if (simulate && phitop.current) {
-            phitop.current.simulate = simulate;
-        } 
-    }, [simulate])
-
-    React.useEffect(() => {
         init();
 
         return () => {
@@ -198,7 +192,7 @@ function App() {
                 <canvas className="w-full h-full" ref={canvas} />
             </div>
             <div className='w-96 absolute left-0 bottom-0 h-fit flex p-4 gap-3'>
-                <Button onClick={() => { setSimulate(!phitop.current!.simulate) }}>
+                <Button onClick={() => { setSimulate(!simulate); phitop.current!.simulate = !simulate; }}>
                     {
                         simulate ? <i className='bi bi-pause-fill' />
                                  : <i className='bi bi-play-fill'  />
