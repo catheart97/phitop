@@ -5,6 +5,21 @@ import { PhiTop, PHI } from './PhiTop';
 
 let firstRun = true;
 
+
+const Button = (props: {
+    children?: React.ReactNode
+    onClick?: () => void
+}) => {
+    return (
+        <button 
+            className="transition-all bg-neutral-50/40 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500/40 p-2 text-neutral-500/40 duration-300" 
+            onClick={props.onClick}
+        >
+            {props.children}
+        </button>
+    )
+}
+
 function App() {
 
     const canvas = React.createRef<HTMLCanvasElement>();
@@ -175,17 +190,15 @@ function App() {
                 <canvas className="w-full h-full" ref={canvas}></canvas>
             </div>
             <div className='w-96 absolute left-0 bottom-0 h-fit flex flex-col p-4 gap-3'>
-                <button className="transition-all bg-neutral-50 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500 p-2 text-neutral-500" onClick={() => {
+                <Button onClick={() => {
                     phitop.current!.simulate = !phitop.current!.simulate;
                     console.log("simulate", phitop.current!.simulate);
                 }}>
-                    Start/Pause Simulation
-                </button>
-                <button className="transition-all bg-neutral-50 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500 p-2 text-neutral-500" onClick={() => {
-                    phitop.current?.reset();
-                }}>
-                    Reset
-                </button>
+                    Start/Pause
+                </Button>
+                <Button onClick={() => { phitop.current?.reset(); }}>
+                    Reset All
+                </Button>
             </div>
         </div>
     )
