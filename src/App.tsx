@@ -3,8 +3,7 @@ import '@babylonjs/inspector';
 import * as React from "react";
 import { PhiTop, PHI } from './PhiTop';
 
-let firstRun = true;
-
+import 'bootstrap-icons/font/bootstrap-icons.css'
 
 const Button = (props: {
     children?: React.ReactNode
@@ -12,7 +11,7 @@ const Button = (props: {
 }) => {
     return (
         <button 
-            className="transition-all bg-neutral-50/40 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500/40 p-2 text-neutral-500/40 duration-300" 
+            className="transition-all bg-neutral-50/40 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500/40 p-2 text-neutral-500/40 duration-300 pl-3 pr-3 rounded-full" 
             onClick={props.onClick}
         >
             {props.children}
@@ -27,6 +26,8 @@ function App() {
     const engine = React.useRef<BabylonJS.Engine>();
     const scene = React.useRef<BabylonJS.Scene>();
     const phitop = React.useRef<PhiTop>();
+
+    const [ simulate, setSimulate ] = React.useState(false);
 
     const initEngine = () => {
         engine.current = new BabylonJS.Engine(canvas.current, true, {
@@ -49,10 +50,11 @@ function App() {
             BabylonJS.Vector3.Zero(), scene.current
         )
         camera.minZ = 0.1;
-        scene.current?.onBeforeRenderObservable.add(() => {
-            // camera.target = phitop.current?.getAbsolutePosition()!;
-            camera.target.y = phitop.current!.scale * PHI;
-        })
+        camera.target.y = phitop.current!.scale * PHI;
+        // scene.current?.onBeforeRenderObservable.add(() => {
+        //     // camera.target = phitop.current?.getAbsolutePosition()!;
+        //     camera.target.y = phitop.current!.scale * PHI;
+        // })
         camera.attachControl(canvas.current!)
     }
 
@@ -176,6 +178,12 @@ function App() {
     }
 
     React.useEffect(() => {
+        if (simulate && phitop.current) {
+            phitop.current.simulate = simulate;
+        } 
+    }, [simulate])
+
+    React.useEffect(() => {
         init();
 
         return () => {
@@ -187,17 +195,17 @@ function App() {
     return (
         <div className="w-full h-screen flex relative">
             <div className='grow h-full'>
-                <canvas className="w-full h-full" ref={canvas}></canvas>
+                <canvas className="w-full h-full" ref={canvas} />
             </div>
-            <div className='w-96 absolute left-0 bottom-0 h-fit flex flex-col p-4 gap-3'>
-                <Button onClick={() => {
-                    phitop.current!.simulate = !phitop.current!.simulate;
-                    console.log("simulate", phitop.current!.simulate);
-                }}>
-                    Start/Pause
+            <div className='w-96 absolute left-0 bottom-0 h-fit flex p-4 gap-3'>
+                <Button onClick={() => { setSimulate(!phitop.current!.simulate) }}>
+                    {
+                        simulate ? <i className='bi bi-pause-fill' />
+                                 : <i className='bi bi-play-fill'  />
+                    }
                 </Button>
                 <Button onClick={() => { phitop.current?.reset(); }}>
-                    Reset All
+                    <i className="bi bi-arrow-counterclockwise"></i>
                 </Button>
             </div>
         </div>
