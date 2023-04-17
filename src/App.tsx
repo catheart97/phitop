@@ -58,7 +58,7 @@ function App() {
 
     const setupEnvironment = () => {
         const hdri = new BabylonJS.HDRCubeTexture(
-            "/burnt_warehouse_4k.hdr",
+            "/phitop/burnt_warehouse_4k.hdr",
             scene.current!,
             1024,
             false,
@@ -70,7 +70,7 @@ function App() {
         scene.current!.environmentBRDFTexture = hdri;
 
         const skybox = new BabylonJS.PhotoDome(
-            "skybox", "/burnt_warehouse_4k.hdr", {}, scene.current!
+            "skybox", "/phitop/burnt_warehouse_4k.hdr", {}, scene.current!
         )
         skybox.infiniteDistance = true;
 
@@ -123,8 +123,8 @@ function App() {
         groundMaterial.roughness = 0.1;
         // groundMaterial.metallicRoughnessTexture = new BabylonJS.Texture("WoodFloor051_2K-JPG/WoodFloor051_2K_Roughness.jpg", scene.current)
         groundMaterial.metallic = 0.0;
-        groundMaterial.baseTexture = new BabylonJS.Texture("WoodFloor051_2K-JPG/WoodFloor051_2K_Color.jpg", scene.current)
-        groundMaterial.normalTexture = new BabylonJS.Texture("WoodFloor051_2K-JPG/WoodFloor051_2K_NormalGL.jpg", scene.current)
+        groundMaterial.baseTexture = new BabylonJS.Texture("phitop/WoodFloor051_2K-JPG/WoodFloor051_2K_Color.jpg", scene.current)
+        groundMaterial.normalTexture = new BabylonJS.Texture("phitop/WoodFloor051_2K-JPG/WoodFloor051_2K_NormalGL.jpg", scene.current)
         ground.material = groundMaterial;
         ground.rotation.x = Math.PI / 2;
         ground.receiveShadows = true;

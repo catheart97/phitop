@@ -35,9 +35,9 @@ export class PhiTop extends BabylonJS.TransformNode {
         }, scene)
         const material = new BabylonJS.PBRMetallicRoughnessMaterial("phitop#material", scene);
         material.roughness = 0.1;
-        material.metallicRoughnessTexture = new BabylonJS.Texture("Metal012_1K-JPG/Metal012_1K_Metalness.jpg", scene)
-        material.baseTexture = new BabylonJS.Texture("Metal012_1K-JPG/Metal012_1K_Color.jpg", scene)
-        material.normalTexture = new BabylonJS.Texture("Metal012_1K-JPG/Metal012_1K_NormalGL.jpg", scene)
+        material.metallicRoughnessTexture = new BabylonJS.Texture("phitop/Metal012_1K-JPG/Metal012_1K_Metalness.jpg", scene)
+        material.baseTexture = new BabylonJS.Texture("phitop/Metal012_1K-JPG/Metal012_1K_Color.jpg", scene)
+        material.normalTexture = new BabylonJS.Texture("phitop/Metal012_1K-JPG/Metal012_1K_NormalGL.jpg", scene)
         mesh.material = material;
         mesh.parent = this;
 
