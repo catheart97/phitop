@@ -170,23 +170,18 @@ function App() {
     }, []);
 
     return (
-        <div className="w-full h-screen flex">
+        <div className="w-full h-screen flex relative">
             <div className='grow h-full'>
                 <canvas className="w-full h-full" ref={canvas}></canvas>
             </div>
-            <div className='w-96 bg-neutral-50 h-full flex flex-col p-4 gap-3'>
-                <button className="transition-all hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500 p-2 text-neutral-500" onClick={() => {
+            <div className='w-96 absolute left-0 bottom-0 h-fit flex flex-col p-4 gap-3'>
+                <button className="transition-all bg-neutral-50 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500 p-2 text-neutral-500" onClick={() => {
                     phitop.current!.simulate = !phitop.current!.simulate;
                     console.log("simulate", phitop.current!.simulate);
                 }}>
                     Start/Pause Simulation
                 </button>
-                <button className="transition-all hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500 p-2 text-neutral-500" onClick={() => {
-                    scene.current?.debugLayer.show();
-                }}>
-                    Show Debug Layer
-                </button>
-                <button className="transition-all hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500 p-2 text-neutral-500" onClick={() => {
+                <button className="transition-all bg-neutral-50 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500 p-2 text-neutral-500" onClick={() => {
                     phitop.current?.reset();
                 }}>
                     Reset
