@@ -34,17 +34,17 @@ type OverlayProps = {
 
 const OverlayRenderer : React.ForwardRefRenderFunction<OverlayHandle, OverlayProps> = (props, env) => {
 
-    const [animationState, setAnimationState] = React.useState("w-0")
+    const [animationState, setAnimationState] = React.useState("w-0 border-0")
 
     const handle : OverlayHandle = {
         toggle() {
-            setAnimationState(animationState == "w-96" ? "w-0" : "w-96");
+            setAnimationState(animationState == "w-96 border-2" ? "w-0 border-0" : "w-96 border-2");
         },
         open() {
-            setAnimationState("w-96")
+            setAnimationState("w-96 border-2")
         },
         hide() {
-            setAnimationState("w-0")
+            setAnimationState("w-0 border-0")
         },
     }
 
@@ -52,7 +52,7 @@ const OverlayRenderer : React.ForwardRefRenderFunction<OverlayHandle, OverlayPro
 
     return (
         <div className='absolute right-0 top-0 bottom-0 p-4'>
-            <div className={'max-w-96 h-full bg-neutral-50/80 flex flex-col items-stretch text-center top-0 bottom-0 overflow-hidden overflow-y-scroll border-neutral-500/60 border-2 transition-[width] duration-300 ease-in-out rounded-2xl gap-4 ' + animationState}>
+            <div className={'max-w-96 h-full bg-neutral-50/80 flex flex-col items-stretch text-center top-0 bottom-0 overflow-hidden overflow-y-scroll border-neutral-500/60 border-2 transition-[width,border] duration-300 ease-in-out rounded-2xl gap-4 ' + animationState}>
                 <div className='m-5'>
                     {props.children}
                 </div>
@@ -133,7 +133,6 @@ function App() {
                     <Line type="monotone" dataKey="tx" stroke="#f87171" dot={false} />
                     <Line type="monotone" dataKey="ty" stroke="#4ade80" dot={false} />
                     <Line type="monotone" dataKey="tz" stroke="#38bdf8" dot={false} />
-                    <Line type="monotone" dataKey="appliedNoise" stroke="#38bdf8" dot={false} />
                 </LineChart>
             )
         }, 100)

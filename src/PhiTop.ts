@@ -106,7 +106,6 @@ export class PhiTop extends BabylonJS.TransformNode {
             for (let i = 0; i < this.steps; ++i) {
 
                 const world = this.rotationMatrix()
-                let u = world.transpose().getRow(1)!.toVector3()!;
                 let [p, pWorld] = this.contactPoint(world);
 
                 const Fg = this.gravity.clone().scale(this.mass);
@@ -131,22 +130,6 @@ export class PhiTop extends BabylonJS.TransformNode {
                     ),
                     inertia.invert()
                 )
-                let appliedNoise = 0;
-
-                // this.angularVelocity.scaleInPlace(0.998)
-                // this.velocity.scaleInPlace(0.998)
-
-
-                // if (BabylonJS.Vector3.Cross(this.angularVelocity, u).length() < 0.1 && 
-                //     this.angularVelocity.y > 0.8) {
-                //     dAngularVelocity.addInPlace(new BabylonJS.Vector3(
-                //         Math.random() * 2 - 1, 
-                //         Math.random() * 2 - 1, 
-                //         Math.random() * 2 - 1)
-                //     );
-                //     appliedNoise = 1;
-                // }
-                                
 
                 // explicit euler for speeds
                 this.angularVelocity.addInPlace(dAngularVelocity.scale(dt));
@@ -178,7 +161,6 @@ export class PhiTop extends BabylonJS.TransformNode {
                     Ekin: Ekin,
                     Erot: Erot,
                     E: Ekin + Erot,
-                    appliedNoise: appliedNoise
                 })
 
                 // apply speeds using euler
@@ -189,7 +171,6 @@ export class PhiTop extends BabylonJS.TransformNode {
                 this.rotation.x %= 2 * Math.PI;
                 this.rotation.y %= 2 * Math.PI;
                 this.rotation.z %= 2 * Math.PI;
-                this.floorCollision();
             }
 
         }
