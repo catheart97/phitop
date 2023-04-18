@@ -4,6 +4,9 @@ import * as React from "react";
 import { PhiTop, PHI } from './PhiTop';
 
 import 'bootstrap-icons/font/bootstrap-icons.css'
+import { CartesianGrid, Label, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts';
+import { BlockMath, InlineMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 
 const Button = (props: {
     children?: React.ReactNode
@@ -11,7 +14,7 @@ const Button = (props: {
 }) => {
     return (
         <button 
-            className="transition-all bg-neutral-50/40 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500/40 p-2 text-neutral-500/40 duration-300 pl-3 pr-3 rounded-full" 
+            className="transition-all bg-neutral-50/60 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500/60 p-2 text-neutral-500/60 duration-300 pl-3 pr-3 rounded-full" 
             onClick={props.onClick}
         >
             {props.children}
@@ -19,15 +22,122 @@ const Button = (props: {
     )
 }
 
+type OverlayHandle = {
+    open: () => void
+    hide: () => void
+    toggle: () => void
+}
+
+type OverlayProps = {
+    children?: React.ReactNode
+}
+
+const OverlayRenderer : React.ForwardRefRenderFunction<OverlayHandle, OverlayProps> = (props, env) => {
+
+    const [animationState, setAnimationState] = React.useState("w-0")
+
+    const handle : OverlayHandle = {
+        toggle() {
+            setAnimationState(animationState == "w-96" ? "w-0" : "w-96");
+        },
+        open() {
+            setAnimationState("w-96")
+        },
+        hide() {
+            setAnimationState("w-0")
+        },
+    }
+
+    React.useImperativeHandle(env, () => (handle));
+
+    return (
+        <div className='absolute right-0 top-0 bottom-0 p-4'>
+            <div className={'max-w-96 h-full bg-neutral-50/80 flex flex-col items-stretch text-center top-0 bottom-0 overflow-hidden overflow-y-scroll border-neutral-500/60 border-2 transition-[width] duration-300 ease-in-out rounded-2xl gap-4 ' + animationState}>
+                <div className='m-5'>
+                    {props.children}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+const Overlay = React.forwardRef(OverlayRenderer)
+
 function App() {
 
     const canvas = React.createRef<HTMLCanvasElement>();
-
+    const overlayHandle = React.createRef<OverlayHandle>();
+    
     const engine = React.useRef<BabylonJS.Engine>();
     const scene = React.useRef<BabylonJS.Scene>();
     const phitop = React.useRef<PhiTop>();
 
+    const [velocityChart, setVelocityChart] = React.useState<JSX.Element>();
+    const [angularVelocityChart, setAngularVelocityChart] = React.useState<JSX.Element>();
+    const [energyChart, setEnergyChart] = React.useState<JSX.Element>();
+    const [torqueChart, setTorqueChart] = React.useState<JSX.Element>();
+
     const [ simulate, setSimulate ] = React.useState(false);
+
+    const updateCharts = () => {
+        setVelocityChart(<></>);
+        setAngularVelocityChart(<></>)
+        setEnergyChart(<></>)
+        setTorqueChart(<></>)
+
+        setTimeout(() => {
+
+            const data = phitop.current!.data.filter((_, i) => {
+                return i % (phitop.current!.steps) == 0
+            })
+
+            setVelocityChart(
+                <LineChart width={300} height={200} data={data}>
+                    <XAxis dataKey="t" tickFormatter={(val : number, _) => { return val.toFixed(1);}}/>
+                    <YAxis/>
+                    <CartesianGrid stroke="#090909" strokeDasharray="5 5"/>
+                    <Tooltip/>
+                    <Line type="monotone" dataKey="vx" stroke="#f87171" dot={false} />
+                    <Line type="monotone" dataKey="vy" stroke="#4ade80" dot={false} />
+                    <Line type="monotone" dataKey="vz" stroke="#38bdf8" dot={false} />
+                </LineChart>
+            )
+            setAngularVelocityChart(
+                <LineChart width={300} height={200} data={data}>
+                    <XAxis dataKey="t" tickFormatter={(val : number, _) => { return val.toFixed(1);}}/>
+                    <YAxis/>
+                    <CartesianGrid stroke="#090909" strokeDasharray="5 5"/>
+                    <Tooltip/>
+                    <Line type="monotone" dataKey="wx" stroke="#f87171" dot={false} />
+                    <Line type="monotone" dataKey="wy" stroke="#4ade80" dot={false} />
+                    <Line type="monotone" dataKey="wz" stroke="#38bdf8" dot={false} />
+                </LineChart>
+            )
+            setEnergyChart(
+                <LineChart width={300} height={200} data={data}>
+                    <XAxis dataKey="t" tickFormatter={(val : number, _) => { return val.toFixed(1)}} />
+                    <YAxis tickFormatter={(val, idx) => { return (val / 1000).toFixed() }}/>
+                    <CartesianGrid stroke="#090909" strokeDasharray="5 5"/>
+                    <Tooltip/>
+                    <Line type="monotone" dataKey="Ekin" stroke="#f87171" dot={false} />
+                    <Line type="monotone" dataKey="Erot" stroke="#4ade80" dot={false} />
+                    <Line type="monotone" dataKey="E" stroke="#38bdf8" dot={false} />
+                </LineChart>
+            )
+            setTorqueChart(
+                <LineChart width={300} height={200} data={data}>
+                    <XAxis dataKey="t" tickFormatter={(val : number, _) => { return val.toFixed(1)}} />
+                    <YAxis/>
+                    <CartesianGrid stroke="#090909" strokeDasharray="5 5"/>
+                    <Tooltip/>
+                    <Line type="monotone" dataKey="tx" stroke="#f87171" dot={false} />
+                    <Line type="monotone" dataKey="ty" stroke="#4ade80" dot={false} />
+                    <Line type="monotone" dataKey="tz" stroke="#38bdf8" dot={false} />
+                    <Line type="monotone" dataKey="appliedNoise" stroke="#38bdf8" dot={false} />
+                </LineChart>
+            )
+        }, 100)
+    }
 
     const initEngine = () => {
         engine.current = new BabylonJS.Engine(canvas.current, true, {
@@ -159,8 +269,8 @@ function App() {
         engine.current?.runRenderLoop(() => {
             scene.current?.render()
         })
-        canvas.current?.addEventListener("resize", () => {
-            engine.current?.resize();
+        window.addEventListener("resize", () => {
+            engine.current!.resize();
         })
     }
 
@@ -173,6 +283,7 @@ function App() {
         setupPost();
         setupLoop();
         scene.current?.onReadyObservable.addOnce(() => {
+            updateCharts();
             engine.current!.hideLoadingUI();
         })
     }
@@ -187,7 +298,7 @@ function App() {
     }, []);
 
     return (
-        <div className="w-full h-screen flex relative">
+        <div className="w-full h-screen relative">
             <div className='grow h-full'>
                 <canvas className="w-full h-full" ref={canvas} />
             </div>
@@ -201,7 +312,47 @@ function App() {
                 <Button onClick={() => { phitop.current?.reset(); }}>
                     <i className="bi bi-arrow-counterclockwise"></i>
                 </Button>
+                <Button onClick={() => { overlayHandle.current?.toggle() }}>
+                    <i className="bi bi-layout-sidebar-reverse"></i>
+                </Button>
             </div>
+
+            <Overlay
+                ref={overlayHandle}
+            >
+                <div className='flex justify-between items-center'>
+                    Refresh Graph Data
+
+                    <Button onClick={updateCharts}>
+                        <i className='bi bi-arrow-clockwise'></i>
+                    </Button>
+                </div>
+
+                <hr className='mt-2 mb-4 border-neutral-500'></hr>
+
+                <div className='flex flex-col items-center gap-3 w-full'>
+                    <div className='w-full text-left flex flex-col gap-3'>
+                        <InlineMath math="\vec{v}\ [\frac{\text{m}}{\text{s}}]" />
+                        {velocityChart}
+                    </div>
+
+                    <div className='w-full text-left flex flex-col gap-3'>
+                        <InlineMath math="\vec{\omega}\ [\frac{1}{\text{s}}]" />
+                        {angularVelocityChart}
+                    </div>
+
+                    <div className='w-full text-left flex flex-col gap-3'>
+                        <InlineMath math="E\ [1000 \frac{\text{kg} \cdot \text{m}^2}{\text{s}^2}]" />
+                        {energyChart}
+                    </div>
+
+                    <div className='w-full text-left flex flex-col gap-3'>
+                        <InlineMath math="M\ [\frac{\text{kg} \cdot \text{m}^2}{\text{s}^2}]" />
+                        {torqueChart}
+                    </div>
+                </div>
+
+            </Overlay>
         </div>
     )
 }
