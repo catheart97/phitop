@@ -87,9 +87,7 @@ function App() {
 
         setTimeout(() => {
 
-            const data = phitop.current!.data.filter((_, i) => {
-                return i % (phitop.current!.steps) == 0
-            })
+            const data = phitop.current!.data;
 
             setVelocityChart(
                 <LineChart width={300} height={200} data={data}>
@@ -116,7 +114,7 @@ function App() {
             setEnergyChart(
                 <LineChart width={300} height={200} data={data}>
                     <XAxis dataKey="t" tickFormatter={(val : number, _) => { return val.toFixed(1)}} />
-                    <YAxis tickFormatter={(val, idx) => { return (val / 1000).toFixed() }}/>
+                    <YAxis tickFormatter={(val, idx) => { return (val).toFixed(1) }}/>
                     <CartesianGrid stroke="#090909" strokeDasharray="5 5"/>
                     <Tooltip/>
                     <Line type="monotone" dataKey="Ekin" stroke="#f87171" dot={false} />
@@ -343,7 +341,7 @@ function App() {
                     </div>
 
                     <div className='w-full text-left flex flex-col gap-3'>
-                        <InlineMath math="E\ [1000 \frac{\text{kg} \cdot \text{m}^2}{\text{s}^2}]" />
+                        <InlineMath math="E\ [\frac{\text{kg} \cdot \text{m}^2}{\text{s}^2}]" />
                         {energyChart}
                     </div>
 

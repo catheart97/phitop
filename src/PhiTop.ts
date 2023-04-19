@@ -59,9 +59,9 @@ export class PhiTop extends BabylonJS.TransformNode {
     }
 
     reset() {
-        this.angularVelocity = new BabylonJS.Vector3(0, 20 * Math.PI, 0);
+        this.angularVelocity = new BabylonJS.Vector3(0, 10 * Math.PI, 0);
         this.velocity = BabylonJS.Vector3.Zero();
-        this.rotation = new BabylonJS.Vector3(0.1, 0.0, Math.PI / 2 + 0.1);
+        this.rotation = new BabylonJS.Vector3(0.0, 0.0, Math.PI / 2 + 0.1);
         this.position = BabylonJS.Vector3.Zero();
         this.data = []
         this.rotate(BabylonJS.Vector3.Up(), 0);
@@ -77,32 +77,40 @@ export class PhiTop extends BabylonJS.TransformNode {
 
                 const world = this.getWorldMatrix().getRotationMatrix();
 
+                // compute contact point
                 let u = world.transpose().getRow(1)!.toVector3()!;
                 let p = new BabylonJS.Vector3(-u.x, -u.y * PHI * PHI, -u.z);
                 p = p.scale(Math.sqrt(1 / ((p.x * p.x) + (p.y * p.y / (PHI * PHI)) + (p.z * p.z)))).scale(this.scale)
                 const pWorld = BabylonJS.Vector3.TransformCoordinates(p, world);
 
+                // gravity force
                 const Fg = this.gravity.clone().scale(this.mass);
-                let Fn = Fg.scale(-0.5)
+                
+                // normal force 
+                const Fn = Fg.scale(-1)
+
+                // friction force
                 const Fr = this.velocity.add(
                     BabylonJS.Vector3.Cross(pWorld, this.angularVelocity)
                 ).scale(-this.kineticFriction);
-                const inertia = world.multiply(this.momentOfInertia.multiply(world.transpose()));
+
+                // compute torques
                 const torque = BabylonJS.Vector3.Cross(Fn.add(Fr), pWorld);
 
+                // compute accelerations
                 const acceleration = Fg.add(Fn).add(Fr).scale(1 / this.mass);
                 const angularAcceleration = BabylonJS.Vector3.TransformCoordinates(
-                    torque.subtract(
+                    torque.subtract( 
                         BabylonJS.Vector3.Cross(
                             this.angularVelocity,
                             BabylonJS.Vector3.TransformCoordinates(
                                 this.angularVelocity,
-                                inertia
+                                this.momentOfInertia
                             )
                         )
                     ),
-                    inertia.invert()
-                )
+                    this.momentOfInertia.invert()
+                ) 
 
                 // explicit euler for velocities
                 this.angularVelocity.addInPlace(angularAcceleration.scale(dt));
@@ -110,43 +118,42 @@ export class PhiTop extends BabylonJS.TransformNode {
 
                 // save graph data
                 this.t += dt;
+                
+                if (i == this.steps - 1) {
+    
+                    const Ekin = 0.5 * this.velocity.lengthSquared() * this.mass;
+                    const Erot = 0.5 * BabylonJS.Vector3.Dot(
+                        BabylonJS.Vector3.TransformCoordinates(
+                            this.angularVelocity,
+                            this.momentOfInertia
+                        ),
+                        this.angularVelocity
+                    );
+                    const Epot = this.mass * this.gravity.length() * (-pWorld.y);
 
-                const Ekin = 0.5 * this.velocity.lengthSquared() * this.mass;
-                const Erot = 0.5 * BabylonJS.Vector3.Dot(
-                    BabylonJS.Vector3.TransformCoordinates(
-                        this.angularVelocity,
-                        inertia
-                    ),
-                    this.angularVelocity
-                );
-                const Epot = this.mass * this.gravity.length() * (-pWorld.y);
-
-                this.data.push({
-                    t: this.t,
-                    vx: this.velocity.x,
-                    vy: this.velocity.y,
-                    vz: this.velocity.z,
-                    wx: this.angularVelocity.x,
-                    wy: this.angularVelocity.y,
-                    wz: this.angularVelocity.z,
-                    tx: torque.x,
-                    ty: torque.y,
-                    tz: torque.z,
-                    Ekin: Ekin,
-                    Erot: Erot,
-                    Epot: Epot,
-                    E: Ekin + Erot + Epot,
-                })
+                    this.data.push({
+                        t: this.t,
+                        vx: this.velocity.x,
+                        vy: this.velocity.y,
+                        vz: this.velocity.z,
+                        wx: this.angularVelocity.x,
+                        wy: this.angularVelocity.y,
+                        wz: this.angularVelocity.z,
+                        tx: torque.x,
+                        ty: torque.y,
+                        tz: torque.z,
+                        Ekin: Ekin,
+                        Erot: Erot,
+                        Epot: Epot,
+                        E: Ekin + Erot + Epot,
+                    })
+                }
 
                 // apply speeds using euler
                 this.position.addInPlace(this.velocity.scale(dt * dt));
-
-                const axis = this.angularVelocity.normalizeToNew();
-                const angle = this.angularVelocity.length() * dt;
-
                 this.rotate(
-                    axis,
-                    angle,
+                    this.angularVelocity.normalizeToNew(),
+                    this.angularVelocity.length() * dt,
                     BabylonJS.Space.WORLD
                 )
 
