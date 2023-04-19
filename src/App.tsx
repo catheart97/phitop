@@ -121,6 +121,7 @@ function App() {
                     <Tooltip/>
                     <Line type="monotone" dataKey="Ekin" stroke="#f87171" dot={false} />
                     <Line type="monotone" dataKey="Erot" stroke="#4ade80" dot={false} />
+                    <Line type="monotone" dataKey="Epot" stroke="#fbbf24" dot={false} />
                     <Line type="monotone" dataKey="E" stroke="#38bdf8" dot={false} />
                 </LineChart>
             )
@@ -160,10 +161,11 @@ function App() {
         )
         camera.minZ = 0.1;
         camera.target.y = phitop.current!.scale * PHI;
-        // scene.current?.onBeforeRenderObservable.add(() => {
-        //     // camera.target = phitop.current?.getAbsolutePosition()!;
-        //     camera.target.y = phitop.current!.scale * PHI;
-        // })
+        scene.current?.onBeforeRenderObservable.add(() => {
+            const p = phitop.current!.getAbsolutePosition()!.clone();
+            p.y = phitop.current!.scale * PHI;
+            camera.target = p;
+        })
         camera.attachControl(canvas.current!)
     }
 
@@ -171,7 +173,7 @@ function App() {
         const hdri = new BabylonJS.HDRCubeTexture(
             "/phitop/burnt_warehouse_4k.hdr",
             scene.current!,
-            1024,
+            128,
             false,
             true,
             false,
@@ -180,9 +182,7 @@ function App() {
         scene.current!.environmentTexture = hdri;
         scene.current!.environmentBRDFTexture = hdri;
 
-        const skybox = new BabylonJS.PhotoDome(
-            "skybox", "/phitop/burnt_warehouse_4k.hdr", {}, scene.current!
-        )
+        const skybox = new BabylonJS.PhotoDome("skybox", "/phitop/burnt_warehouse_4k.hdr", {}, scene.current!)
         skybox.infiniteDistance = true;
 
         const sunPosition = new BabylonJS.Vector3(1,10,1).normalize().scale(5);
@@ -287,6 +287,8 @@ function App() {
         })
     }
 
+    const toggleSimulation = () => { setSimulate(!simulate); phitop.current!.simulate = !simulate; }
+
     React.useEffect(() => {
         init();
 
@@ -302,7 +304,7 @@ function App() {
                 <canvas className="w-full h-full" ref={canvas} />
             </div>
             <div className='w-96 absolute left-0 bottom-0 h-fit flex p-4 gap-3'>
-                <Button onClick={() => { setSimulate(!simulate); phitop.current!.simulate = !simulate; }}>
+                <Button onClick={toggleSimulation}>
                     {
                         simulate ? <i className='bi bi-pause-fill' />
                                  : <i className='bi bi-play-fill'  />

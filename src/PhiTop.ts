@@ -4,16 +4,13 @@ export const PHI = 1.6180339887;
 
 export class PhiTop extends BabylonJS.TransformNode {
 
-    private cp : BabylonJS.Mesh | undefined
-
-    private showContactPoint: boolean = false;
     private mass: number = 0.25
-    private kineticFriction: number = 0.2;
-    steps: number = 100;
+    private kineticFriction: number = 0.3;
+    steps: number = 1000;
 
     private t: number = 0;
 
-    data : any[] = []
+    data: any[] = []
     scale: number = 0.16848;
 
     private angularVelocity: BabylonJS.Vector3 = BabylonJS.Vector3.Zero();
@@ -32,10 +29,10 @@ export class PhiTop extends BabylonJS.TransformNode {
         const ry = this.scale * PHI;
         const rz = this.scale;
 
-        const mesh = BabylonJS.CreateSphere("phitop", { 
-            diameterX: 2 * rx, 
-            diameterY: 2 * ry, 
-            diameterZ: 2 * rz 
+        const mesh = BabylonJS.CreateSphere("phitop", {
+            diameterX: 2 * rx,
+            diameterY: 2 * ry,
+            diameterZ: 2 * rz
         }, scene)
         const material = new BabylonJS.PBRMetallicRoughnessMaterial("phitop#material", scene);
         material.roughness = 0.1;
@@ -45,16 +42,9 @@ export class PhiTop extends BabylonJS.TransformNode {
         mesh.material = material;
         mesh.parent = this;
 
-        if (this.showContactPoint) {
-            this.cp = BabylonJS.CreateSphere("cp", { diameter: 0.2 }, scene)
-            const cpMaterial = new BabylonJS.StandardMaterial("cp#material", scene);
-            cpMaterial.diffuseColor = BabylonJS.Color3.Red();
-            this.cp.material = cpMaterial;
-        }
-
         this.gravity = BabylonJS.Vector3.Down().scale(9.81);
-        this.momentOfInertia = new BabylonJS.Matrix();
 
+        this.momentOfInertia = new BabylonJS.Matrix();
         let tx = this.mass / 5 * (ry * ry + rz * rz);
         let ty = this.mass / 5 * (rx * rx + rz * rz);
         let tz = this.mass / 5 * (rx * rx + ry * ry);
@@ -69,33 +59,13 @@ export class PhiTop extends BabylonJS.TransformNode {
     }
 
     reset() {
-        this.angularVelocity = new BabylonJS.Vector3(0, 8 * Math.PI, 0);
+        this.angularVelocity = new BabylonJS.Vector3(0, 20 * Math.PI, 0);
         this.velocity = BabylonJS.Vector3.Zero();
-        this.rotation = new BabylonJS.Vector3(0.1, 0.1, Math.PI / 2);
+        this.rotation = new BabylonJS.Vector3(0.1, 0.0, Math.PI / 2 + 0.1);
         this.position = BabylonJS.Vector3.Zero();
         this.data = []
+        this.rotate(BabylonJS.Vector3.Up(), 0);
     }
-
-    private rotationMatrix() {
-        let world = this.getWorldMatrix().clone();
-        world.setRow(3, new BabylonJS.Vector4(0, 0, 0, 1));
-        return world;
-    } 
-
-    private contactPoint(world: BabylonJS.Matrix) {
-        let u = world.transpose().getRow(1)!.toVector3()!;
-        let p = new BabylonJS.Vector3(-u.x, -u.y * PHI * PHI, -u.z);
-        p = p.scale(Math.sqrt(1/((p.x * p.x) + (p.y * p.y / (PHI * PHI)) + (p.z * p.z)))).scale(this.scale)
-        const pWorld = BabylonJS.Vector3.TransformCoordinates(p, world); 
-        this.cp?.setAbsolutePosition( this.getAbsolutePosition().add(pWorld) );
-        return [p, pWorld]
-    }
-
-    private floorCollision() {
-        const world = this.rotationMatrix();
-        const [p, pWorld] = this.contactPoint(world);
-        this.position.y = -pWorld.y + 0.01;
-    } 
 
     tick() {
 
@@ -105,22 +75,25 @@ export class PhiTop extends BabylonJS.TransformNode {
 
             for (let i = 0; i < this.steps; ++i) {
 
-                const world = this.rotationMatrix()
-                let [p, pWorld] = this.contactPoint(world);
+                const world = this.getWorldMatrix().getRotationMatrix();
+
+                let u = world.transpose().getRow(1)!.toVector3()!;
+                let p = new BabylonJS.Vector3(-u.x, -u.y * PHI * PHI, -u.z);
+                p = p.scale(Math.sqrt(1 / ((p.x * p.x) + (p.y * p.y / (PHI * PHI)) + (p.z * p.z)))).scale(this.scale)
+                const pWorld = BabylonJS.Vector3.TransformCoordinates(p, world);
 
                 const Fg = this.gravity.clone().scale(this.mass);
-                const Fr = this.velocity.add(BabylonJS.Vector3.Cross(pWorld, this.angularVelocity));
-                Fr.scaleInPlace(-this.kineticFriction);
-
+                let Fn = Fg.scale(-0.5)
+                const Fr = this.velocity.add(
+                    BabylonJS.Vector3.Cross(pWorld, this.angularVelocity)
+                ).scale(-this.kineticFriction);
                 const inertia = world.multiply(this.momentOfInertia.multiply(world.transpose()));
+                const torque = BabylonJS.Vector3.Cross(Fn.add(Fr), pWorld);
 
-                const torque = BabylonJS.Vector3.Cross(Fg.add(Fr), pWorld);
-                const acceleration = Fg.add(Fr).scale(1 / this.mass);
-
-                // compute gradient(s)
-                const dAngularVelocity = BabylonJS.Vector3.TransformCoordinates(
+                const acceleration = Fg.add(Fn).add(Fr).scale(1 / this.mass);
+                const angularAcceleration = BabylonJS.Vector3.TransformCoordinates(
                     torque.subtract(
-                        BabylonJS.Vector3.Cross(  
+                        BabylonJS.Vector3.Cross(
                             this.angularVelocity,
                             BabylonJS.Vector3.TransformCoordinates(
                                 this.angularVelocity,
@@ -131,21 +104,22 @@ export class PhiTop extends BabylonJS.TransformNode {
                     inertia.invert()
                 )
 
-                // explicit euler for speeds
-                this.angularVelocity.addInPlace(dAngularVelocity.scale(dt));
+                // explicit euler for velocities
+                this.angularVelocity.addInPlace(angularAcceleration.scale(dt));
                 this.velocity.addInPlace(acceleration.scale(dt));
 
                 // save graph data
                 this.t += dt;
 
                 const Ekin = 0.5 * this.velocity.lengthSquared() * this.mass;
-                const Erot = 0.5 * BabylonJS.Vector3.Dot( 
+                const Erot = 0.5 * BabylonJS.Vector3.Dot(
                     BabylonJS.Vector3.TransformCoordinates(
                         this.angularVelocity,
                         inertia
                     ),
                     this.angularVelocity
                 );
+                const Epot = this.mass * this.gravity.length() * (-pWorld.y);
 
                 this.data.push({
                     t: this.t,
@@ -160,22 +134,33 @@ export class PhiTop extends BabylonJS.TransformNode {
                     tz: torque.z,
                     Ekin: Ekin,
                     Erot: Erot,
-                    E: Ekin + Erot,
+                    Epot: Epot,
+                    E: Ekin + Erot + Epot,
                 })
 
                 // apply speeds using euler
-                this.position.addInPlace(this.velocity.scale(dt));
-                this.rotation.addInPlace(this.angularVelocity.scale(dt));
+                this.position.addInPlace(this.velocity.scale(dt * dt));
 
-                // normalize rotation values
-                this.rotation.x %= 2 * Math.PI;
-                this.rotation.y %= 2 * Math.PI;
-                this.rotation.z %= 2 * Math.PI;
+                const axis = this.angularVelocity.normalizeToNew();
+                const angle = this.angularVelocity.length() * dt;
+
+                this.rotate(
+                    axis,
+                    angle,
+                    BabylonJS.Space.WORLD
+                )
+
+                this.position.y = -pWorld.y + 0.01;
             }
 
+        } else {
+            const world = this.getWorldMatrix().getRotationMatrix();
+
+            let u = world.transpose().getRow(1)!.toVector3()!;
+            let p = new BabylonJS.Vector3(-u.x, -u.y * PHI * PHI, -u.z);
+            p = p.scale(Math.sqrt(1 / ((p.x * p.x) + (p.y * p.y / (PHI * PHI)) + (p.z * p.z)))).scale(this.scale)
+            const pWorld = BabylonJS.Vector3.TransformCoordinates(p, world);
+            this.position.y = -pWorld.y + 0.01;
         }
-
-        this.floorCollision();
-
     }
 }
