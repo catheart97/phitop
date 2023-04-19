@@ -4,17 +4,96 @@ import * as React from "react";
 import { PhiTop, PHI } from './PhiTop';
 
 import 'bootstrap-icons/font/bootstrap-icons.css'
-import { CartesianGrid, Label, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts';
-import { BlockMath, InlineMath } from 'react-katex';
+import { CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts';
+import { InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
-const Button = (props: {
+type LicenseInfo = {
+    department: string,
+    relatedTo: string
+    name: string
+    licensePeriod: string
+    material: string
+    licenseType: string
+    link: string
+    remoteVersion: string
+    installedVersion: string
+    definedVersion: string
+    author: string
+}
+
+const LicenseView = (props: {
+    info: LicenseInfo
+}) => {
+    return (
+        <div className='p-2 pl-5 pr-5'>
+            {props.info.name} <br/>
+            {
+                (props.info.author != "n/a") ? <>{props.info.author} <br/></> : <></>
+            }
+            {props.info.licenseType}
+        </div>
+    )
+}
+
+const LicenseOverview = () => {
+
+    const [animationState, setAnimationState] = React.useState("h-0")
+
+    const [licenses, setLicenses] = React.useState<LicenseInfo[]>([]);
+
+    React.useEffect(() => {
+        fetch("/phitop/licenses.json").then(res => res.json()).then(data => {
+            setLicenses(data)
+        })
+    }, []);
+
+    return (
+        <div>
+            <div className='flex justify-between text-neutral-500/60 items-center'>
+                    
+                    <FullButton 
+                        onClick={() => {
+                            setAnimationState(
+                                animationState == "h-0" ? "h-fit" : "h-0"
+                            )
+                        }}
+                    >
+                        <div>Toggle License List</div>
+                        <i className={'bi ' + (animationState == "h-0" ? "bi-arrow-down" : "bi-arrow-up")}></i>
+                    </FullButton>
+            </div>
+            <div className={'flex overflow-hidden rounded-2xl bg-neutral-50/80 transition-[height] duration-300 text-left flex-col ' + animationState}>
+                {
+                    licenses.map((license, idx) => <LicenseView info={license} key={idx} />) 
+                }
+            </div>
+        </div>
+    )
+}
+
+const FullButton = (props: {
     children?: React.ReactNode
     onClick?: () => void
 }) => {
     return (
         <button 
-            className="transition-all bg-neutral-50/60 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500/60 p-2 text-neutral-500/60 duration-300 pl-3 pr-3 rounded-full" 
+            className="transition-all hover:bg-neutral-500 hover:text-neutral-50 border-neutral-500/60 p-2 text-neutral-800 duration-300 pl-5 pr-5 rounded-full w-full flex justify-between" 
+            onClick={props.onClick}
+        >
+            {props.children}
+        </button>
+    )
+}
+
+const Button = (props: {
+    children?: React.ReactNode
+    onClick?: () => void
+    className?: string
+}) => {
+    return (
+        <button 
+            className={"transition-all bg-neutral-50/60 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500/60 p-2 text-neutral-500/60 duration-300 pl-3 pr-3 rounded-full " + props.className} 
             onClick={props.onClick}
         >
             {props.children}
@@ -319,33 +398,33 @@ function App() {
             <Overlay
                 ref={overlayHandle}
             >
-                <div className='flex justify-between items-center'>
-                    Refresh Graph Data
 
-                    <Button onClick={updateCharts}>
+                <div className='w-full border-b-2 pb-3 gap-1 flex flex-col border-neutral-500'>
+                    <FullButton onClick={updateCharts}>
+                        <div>Refresh Graph Data</div>
                         <i className='bi bi-arrow-clockwise'></i>
-                    </Button>
+                    </FullButton>
+
+                    <LicenseOverview />
                 </div>
 
-                <hr className='mt-2 mb-4 border-neutral-500'></hr>
-
-                <div className='flex flex-col items-center gap-3 w-full'>
-                    <div className='w-full text-left flex flex-col gap-3'>
+                <div className='flex flex-col items-center gap-3 w-full pt-3 pb-3 p-5'>
+                    <div className='w-full text-right flex flex-col gap-3'>
                         <InlineMath math="\vec{v}\ [\frac{\text{m}}{\text{s}}]" />
                         {velocityChart}
                     </div>
 
-                    <div className='w-full text-left flex flex-col gap-3'>
+                    <div className='w-full text-right flex flex-col gap-3'>
                         <InlineMath math="\vec{\omega}\ [\frac{1}{\text{s}}]" />
                         {angularVelocityChart}
                     </div>
 
-                    <div className='w-full text-left flex flex-col gap-3'>
+                    <div className='w-full text-right flex flex-col gap-3'>
                         <InlineMath math="E\ [\frac{\text{kg} \cdot \text{m}^2}{\text{s}^2}]" />
                         {energyChart}
                     </div>
 
-                    <div className='w-full text-left flex flex-col gap-3'>
+                    <div className='w-full text-right flex flex-col gap-3'>
                         <InlineMath math="M\ [\frac{\text{kg} \cdot \text{m}^2}{\text{s}^2}]" />
                         {torqueChart}
                     </div>
