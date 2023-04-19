@@ -97,6 +97,10 @@ export class PhiTop extends BabylonJS.TransformNode {
                 // compute torques
                 const torque = BabylonJS.Vector3.Cross(Fn.add(Fr), pWorld);
 
+                if (Fr.length() < 0.01) {
+                    torque.addInPlace(Fn.scale(-this.angularVelocity.length() * dt * 10));
+                }
+
                 // compute accelerations
                 const acceleration = Fg.add(Fn).add(Fr).scale(1 / this.mass);
                 const angularAcceleration = BabylonJS.Vector3.TransformCoordinates(
@@ -111,6 +115,8 @@ export class PhiTop extends BabylonJS.TransformNode {
                     ),
                     this.momentOfInertia.invert()
                 ) 
+
+
 
                 // explicit euler for velocities
                 this.angularVelocity.addInPlace(angularAcceleration.scale(dt));
