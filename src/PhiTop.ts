@@ -5,8 +5,8 @@ export const PHI = 1.6180339887;
 export class PhiTop extends BabylonJS.TransformNode {
 
     private mass: number = 0.25
-    private kineticFriction: number = 0.3;
-    steps: number = 1000;
+    private kineticFriction: number = 0.4;
+    steps: number = 100;
 
     private t: number = 0;
 
@@ -34,6 +34,7 @@ export class PhiTop extends BabylonJS.TransformNode {
             diameterY: 2 * ry,
             diameterZ: 2 * rz
         }, scene)
+        
         const material = new BabylonJS.PBRMetallicRoughnessMaterial("phitop#material", scene);
         material.roughness = 0.1;
         material.metallicRoughnessTexture = new BabylonJS.Texture("Metal012_1K-JPG/Metal012_1K_Metalness.jpg", scene)
@@ -59,7 +60,7 @@ export class PhiTop extends BabylonJS.TransformNode {
     }
 
     reset() {
-        this.angularVelocity = new BabylonJS.Vector3(0, 10 * Math.PI, 0);
+        this.angularVelocity = new BabylonJS.Vector3(0, 20, 0);
         this.velocity = BabylonJS.Vector3.Zero();
         this.rotation = new BabylonJS.Vector3(0.0, 0.0, Math.PI / 2 + 0.1);
         this.position = BabylonJS.Vector3.Zero();
@@ -86,20 +87,31 @@ export class PhiTop extends BabylonJS.TransformNode {
                 // gravity force
                 const Fg = this.gravity.clone().scale(this.mass);
                 
-                // normal force 
-                const Fn = Fg.scale(-1)
-
                 // friction force
                 const Fr = this.velocity.add(
                     BabylonJS.Vector3.Cross(pWorld, this.angularVelocity)
                 ).scale(-this.kineticFriction);
-
+                
+                // normal force
+                let Fn = new BabylonJS.Vector3(
+                    0,
+                    (
+                        (
+                            (
+                                (-pWorld.y - this.position.y) / dt
+                            ) - this.velocity.y
+                        ) * this.mass
+                    ) / dt - Fg.y - Fr.y,
+                    0
+                );
+                // Fn = Fg.scale(-1);
+                    
                 // compute torques
-                const torque = BabylonJS.Vector3.Cross(Fn.add(Fr), pWorld);
+                const torque = BabylonJS.Vector3.Cross(Fn.scale(-1).add(Fr), pWorld);
 
-                if (Fr.length() < 0.01) {
-                    torque.addInPlace(Fn.scale(-this.angularVelocity.length() * dt * 10));
-                }
+                // const inertia = this.momentOfInertia.clone();
+                // console.log(inertia, world.transpose().multiply(this.momentOfInertia.clone()).multiply(world))
+                const inertia = world.transpose().multiply(this.momentOfInertia.clone()).multiply(world);
 
                 // compute accelerations
                 const acceleration = Fg.add(Fn).add(Fr).scale(1 / this.mass);
@@ -109,18 +121,26 @@ export class PhiTop extends BabylonJS.TransformNode {
                             this.angularVelocity,
                             BabylonJS.Vector3.TransformCoordinates(
                                 this.angularVelocity,
-                                this.momentOfInertia
+                                inertia
                             )
                         )
                     ),
-                    this.momentOfInertia.invert()
+                    inertia.clone().invert()
                 ) 
-
-
 
                 // explicit euler for velocities
                 this.angularVelocity.addInPlace(angularAcceleration.scale(dt));
                 this.velocity.addInPlace(acceleration.scale(dt));
+
+                // apply speeds using euler
+                this.position.addInPlace(this.velocity.scale(dt));
+                this.rotate(
+                    this.angularVelocity.normalizeToNew(),
+                    this.angularVelocity.length() * dt,
+                    BabylonJS.Space.WORLD
+                )
+
+                // console.log(this.position.y, -pWorld.y)
 
                 // save graph data
                 this.t += dt;
@@ -131,11 +151,11 @@ export class PhiTop extends BabylonJS.TransformNode {
                     const Erot = 0.5 * BabylonJS.Vector3.Dot(
                         BabylonJS.Vector3.TransformCoordinates(
                             this.angularVelocity,
-                            this.momentOfInertia
+                            inertia
                         ),
                         this.angularVelocity
                     );
-                    const Epot = this.mass * this.gravity.length() * (-pWorld.y);
+                    const Epot = -pWorld.y * this.mass * this.gravity.length();
 
                     this.data.push({
                         t: this.t,
@@ -155,15 +175,9 @@ export class PhiTop extends BabylonJS.TransformNode {
                     })
                 }
 
-                // apply speeds using euler
-                this.position.addInPlace(this.velocity.scale(dt * dt));
-                this.rotate(
-                    this.angularVelocity.normalizeToNew(),
-                    this.angularVelocity.length() * dt,
-                    BabylonJS.Space.WORLD
-                )
-
-                this.position.y = -pWorld.y + 0.01;
+                // this.simulate = false;
+                // break;
+                // this.position.y = -pWorld.y + 0.01;
             }
 
         } else {
@@ -173,7 +187,7 @@ export class PhiTop extends BabylonJS.TransformNode {
             let p = new BabylonJS.Vector3(-u.x, -u.y * PHI * PHI, -u.z);
             p = p.scale(Math.sqrt(1 / ((p.x * p.x) + (p.y * p.y / (PHI * PHI)) + (p.z * p.z)))).scale(this.scale)
             const pWorld = BabylonJS.Vector3.TransformCoordinates(p, world);
-            this.position.y = -pWorld.y + 0.01;
+            this.position.y = -pWorld.y;
         }
     }
 }

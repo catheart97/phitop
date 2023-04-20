@@ -38,7 +38,8 @@ const LicenseView = (props: {
 
 const LicenseOverview = () => {
 
-    const [animationState, setAnimationState] = React.useState("h-0")
+    const mainRef = React.createRef<HTMLDivElement>();
+    const [animationState, setAnimationState] = React.useState(0)
 
     const [licenses, setLicenses] = React.useState<LicenseInfo[]>([]);
 
@@ -55,15 +56,15 @@ const LicenseOverview = () => {
                     <FullButton 
                         onClick={() => {
                             setAnimationState(
-                                animationState == "h-0" ? "h-fit" : "h-0"
+                                animationState == 0 ? (mainRef.current!.scrollHeight) : 0
                             )
                         }}
                     >
-                        <div>Toggle License List</div>
-                        <i className={'bi ' + (animationState == "h-0" ? "bi-arrow-down" : "bi-arrow-up")}></i>
+                        <div>Show/Hide OS Licenses</div>
+                        <i className={'bi ' + (animationState == 0 ? "bi-arrow-down" : "bi-arrow-up")}></i>
                     </FullButton>
             </div>
-            <div className={'flex overflow-hidden rounded-2xl bg-neutral-50/80 transition-[height] duration-300 text-left flex-col ' + animationState}>
+            <div ref={mainRef} className={'flex overflow-hidden rounded-2xl bg-neutral-50/80 transition-all duration-300 text-left flex-col ease-in-out'} style={{height: animationState}}>
                 {
                     licenses.map((license, idx) => <LicenseView info={license} key={idx} />) 
                 }
