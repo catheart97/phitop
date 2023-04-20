@@ -61,7 +61,7 @@ const LicenseOverview = () => {
                         }}
                     >
                         <div>Show/Hide OS Licenses</div>
-                        <i className={'bi ' + (animationState == 0 ? "bi-arrow-down" : "bi-arrow-up")}></i>
+                        <i className={'bi bi-arrow-down transition-[transform] duration-300 ease-in-out ' + (animationState == 0 ? "rotate-0" : "rotate-180")}></i>
                     </FullButton>
             </div>
             <div ref={mainRef} className={'flex overflow-hidden rounded-2xl bg-neutral-50/80 transition-all duration-300 text-left flex-col ease-in-out'} style={{height: animationState}}>
@@ -94,7 +94,7 @@ const Button = (props: {
 }) => {
     return (
         <button 
-            className={"transition-all bg-neutral-50/60 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500/60 p-2 text-neutral-500/60 duration-300 pl-3 pr-3 rounded-full " + props.className} 
+            className={"transition-all bg-neutral-50/60 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500/60 p-2 text-neutral-500/60 duration-300 ease-in-out pl-3 pr-3 rounded-full " + props.className} 
             onClick={props.onClick}
         >
             {props.children}

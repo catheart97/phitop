@@ -60,7 +60,7 @@ export class PhiTop extends BabylonJS.TransformNode {
     }
 
     reset() {
-        this.angularVelocity = new BabylonJS.Vector3(0, 20, 0);
+        this.angularVelocity = new BabylonJS.Vector3(0, 31, 0);
         this.velocity = BabylonJS.Vector3.Zero();
         this.rotation = new BabylonJS.Vector3(0.0, 0.0, Math.PI / 2 + 0.1);
         this.position = BabylonJS.Vector3.Zero();
