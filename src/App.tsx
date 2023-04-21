@@ -274,7 +274,7 @@ function App() {
 
     const setupEnvironment = () => {
         const hdri = new BabylonJS.HDRCubeTexture(
-            "/phitop/burnt_warehouse_4k.hdr",
+            "/phitop/burnt_warehouse_2k.hdr",
             scene.current!,
             128,
             false,
