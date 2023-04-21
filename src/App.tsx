@@ -132,7 +132,7 @@ const OverlayRenderer : React.ForwardRefRenderFunction<OverlayHandle, OverlayPro
 
     return (
         <div className='absolute right-0 top-0 bottom-0 p-4'>
-            <div className={'max-w-96 h-full bg-neutral-50/80 flex flex-col items-stretch text-center top-0 bottom-0 overflow-hidden overflow-y-scroll border-neutral-500/60 border-2 transition-[width,border] duration-300 ease-in-out rounded-2xl gap-4 ' + animationState}>
+            <div className={'max-w-96 h-full bg-neutral-50/80 flex flex-col items-stretch text-center top-0 bottom-0 overflow-hidden overflow-y-scroll border-neutral-500/60 transition-all duration-300 ease-in-out rounded-2xl gap-4 ' + animationState}>
                 <div className='m-5'>
                     {props.children}
                 </div>
@@ -377,9 +377,9 @@ function App() {
     }, []);
 
     return (
-        <div className="w-full h-screen relative">
-            <div className='grow h-full'>
-                <canvas className="w-full h-full" ref={canvas} />
+        <div className="root overflow-hidden relative">
+            <div className='grow root'>
+                <canvas className="root" ref={canvas} />
             </div>
             <div className='w-96 absolute left-0 bottom-0 h-fit flex p-4 gap-3'>
                 <Button onClick={toggleSimulation}>
