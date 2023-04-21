@@ -60,7 +60,7 @@ export class PhiTop extends BabylonJS.TransformNode {
     }
 
     reset() {
-        this.angularVelocity = new BabylonJS.Vector3(0, 40, 0);
+        this.angularVelocity = new BabylonJS.Vector3(0, -40, 0);
         this.velocity = BabylonJS.Vector3.Zero();
         this.rotation = new BabylonJS.Vector3(0.0, 0.0, Math.PI / 2 + 0.1);
         this.position = BabylonJS.Vector3.Zero();
@@ -111,7 +111,7 @@ export class PhiTop extends BabylonJS.TransformNode {
 
                 if (Fr.length() < 0.05) {
                     torque.addInPlace(
-                        Fg.scale(dt * this.angularVelocity.length())
+                        this.angularVelocity.scale(-dt)
                     )
                     torque.addInPlace(new BabylonJS.Vector3(
                         dt * this.angularVelocity.length() * 0.01, 0, 0

@@ -50,7 +50,7 @@ const LicenseOverview = () => {
     }, []);
 
     return (
-        <div>
+        <>
             <div className='flex justify-between text-neutral-500/60 items-center'>
                     
                     <FullButton 
@@ -69,7 +69,7 @@ const LicenseOverview = () => {
                     licenses.map((license, idx) => <LicenseView info={license} key={idx} />) 
                 }
             </div>
-        </div>
+        </>
     )
 }
 
@@ -102,6 +102,31 @@ const Button = (props: {
     )
 }
 
+const ToggleButton = (props: {
+    children?: React.ReactNode
+    onClick?: () => void
+    className?: string
+}) => {
+
+    const [toggled, setToggled] = React.useState(false);
+
+    return (
+        <button 
+            className={"transition-all border-2  duration-300 ease-in-out pl-3 pr-3 border-neutral-500/60 rounded-full p-2 " + (
+                toggled 
+                ? "hover:bg-neutral-50 bg-neutral-500/60 text-neutral-50/60  hover:text-neutral-500" 
+                : "bg-neutral-50/60 hover:bg-neutral-500 hover:text-neutral-50 text-neutral-500/60"
+            ) + " " + props.className} 
+            onClick={() => {
+                setToggled(!toggled)
+                props.onClick && props.onClick();
+            }}
+        >
+            {props.children}
+        </button>
+    )
+}
+
 type OverlayHandle = {
     open: () => void
     hide: () => void
@@ -114,26 +139,26 @@ type OverlayProps = {
 
 const OverlayRenderer : React.ForwardRefRenderFunction<OverlayHandle, OverlayProps> = (props, env) => {
 
-    const [animationState, setAnimationState] = React.useState("w-0 border-0")
+    const [animationState, setAnimationState] = React.useState(false)
 
     const handle : OverlayHandle = {
         toggle() {
-            setAnimationState(animationState == "w-96 border-2" ? "w-0 border-0" : "w-96 border-2");
+            setAnimationState(!animationState);
         },
         open() {
-            setAnimationState("w-96 border-2")
+            setAnimationState(true)
         },
         hide() {
-            setAnimationState("w-0 border-0")
+            setAnimationState(false)
         },
     }
 
     React.useImperativeHandle(env, () => (handle));
 
     return (
-        <div className='absolute right-0 top-0 bottom-0 p-4'>
-            <div className={'max-w-96 h-full bg-neutral-50/80 flex flex-col items-stretch text-center top-0 bottom-0 overflow-hidden overflow-y-scroll border-neutral-500/60 transition-all duration-300 ease-in-out rounded-2xl gap-4 ' + animationState}>
-                <div className='m-5'>
+        <div className={'transition-[padding] ease-in-out duration-300 h-full w-fit pointer-events-auto pt-4 pb-4 ' + (animationState ? "pr-4" : "pr-0")}>
+            <div className={'max-w-96 h-full bg-neutral-50/80 flex flex-col items-stretch text-center top-0 bottom-0 overflow-hidden border-neutral-500/60 transition-all duration-300 ease-in-out rounded-2xl gap-4 ' + (animationState ? "w-96 border-2" : "w-0 border-0")}>
+                <div className='m-2 p-3 overflow-y-scroll'>
                     {props.children}
                 </div>
             </div>
@@ -381,57 +406,74 @@ function App() {
             <div className='grow root'>
                 <canvas className="root" ref={canvas} />
             </div>
-            <div className='w-96 absolute left-0 bottom-0 h-fit flex p-4 gap-3'>
-                <Button onClick={toggleSimulation}>
-                    {
-                        simulate ? <i className='bi bi-pause-fill' />
-                                 : <i className='bi bi-play-fill'  />
-                    }
-                </Button>
-                <Button onClick={() => { phitop.current?.reset(); }}>
-                    <i className="bi bi-arrow-counterclockwise"></i>
-                </Button>
-                <Button onClick={() => { overlayHandle.current?.toggle() }}>
-                    <i className="bi bi-layout-sidebar-reverse"></i>
-                </Button>
+
+            <div className='absolute top-0 left-0 right-0 bottom-0 flex pointer-events-none items-end'>
+                <div className='grow h-fit flex p-4 gap-3 justify-between'>
+                    <div className='flex gap-3'>
+                        <Button onClick={toggleSimulation} className='pointer-events-auto'>
+                            {
+                                simulate ? <i className='bi bi-pause-fill' />
+                                         : <i className='bi bi-play-fill'  />
+                            }
+                        </Button>
+                        <Button onClick={() => { phitop.current?.reset(); }} className='pointer-events-auto'>
+                            <i className="bi bi-arrow-counterclockwise"></i>
+                        </Button>
+                    </div>
+                    <ToggleButton onClick={() => { overlayHandle.current?.toggle() }} className='pointer-events-auto'>
+                        <i className="bi bi-layout-sidebar-reverse"></i>
+                    </ToggleButton>
+                </div>
+
+                <Overlay
+                    ref={overlayHandle}
+                >
+                    <div className='w-full border-b-2 pb-3 gap-1 flex flex-col border-neutral-500'>
+                        <FullButton onClick={updateCharts}>
+                            <div>Refresh Graph Data</div>
+                            <i className='bi bi-arrow-clockwise'></i>
+                        </FullButton>
+                    </div>
+
+                    <div className='flex flex-col items-center gap-3 w-full pt-3 pb-3 p-5'>
+                        <div className='w-full text-right flex flex-col gap-3'>
+                            <InlineMath math="\vec{v}\ [\frac{\text{m}}{\text{s}}]" />
+                            {velocityChart}
+                        </div>
+
+                        <div className='w-full text-right flex flex-col gap-3'>
+                            <InlineMath math="\vec{\omega}\ [\frac{1}{\text{s}}]" />
+                            {angularVelocityChart}
+                        </div>
+
+                        <div className='w-full text-right flex flex-col gap-3'>
+                            <InlineMath math="E\ [\frac{\text{kg} \cdot \text{m}^2}{\text{s}^2}]" />
+                            {energyChart}
+                        </div>
+
+                        <div className='w-full text-right flex flex-col gap-3'>
+                            <InlineMath math="M\ [\frac{\text{kg} \cdot \text{m}^2}{\text{s}^2}]" />
+                            {torqueChart}
+                        </div>
+                    </div>
+
+                    <div className='w-full border-t-2 pt-3 gap-1 flex flex-col border-neutral-500'>
+
+                        <FullButton onClick={() => {
+                            window.open("https://catheart97.github.io", '_blank')!.focus();
+                        }}>
+                            <div>Ronja Schnur (catheart97)</div>
+                            <i className='bi bi-box-arrow-up-right'></i>
+                        </FullButton>
+
+
+                        <LicenseOverview />
+                    </div>
+
+                </Overlay>
             </div>
 
-            <Overlay
-                ref={overlayHandle}
-            >
 
-                <div className='w-full border-b-2 pb-3 gap-1 flex flex-col border-neutral-500'>
-                    <FullButton onClick={updateCharts}>
-                        <div>Refresh Graph Data</div>
-                        <i className='bi bi-arrow-clockwise'></i>
-                    </FullButton>
-
-                    <LicenseOverview />
-                </div>
-
-                <div className='flex flex-col items-center gap-3 w-full pt-3 pb-3 p-5'>
-                    <div className='w-full text-right flex flex-col gap-3'>
-                        <InlineMath math="\vec{v}\ [\frac{\text{m}}{\text{s}}]" />
-                        {velocityChart}
-                    </div>
-
-                    <div className='w-full text-right flex flex-col gap-3'>
-                        <InlineMath math="\vec{\omega}\ [\frac{1}{\text{s}}]" />
-                        {angularVelocityChart}
-                    </div>
-
-                    <div className='w-full text-right flex flex-col gap-3'>
-                        <InlineMath math="E\ [\frac{\text{kg} \cdot \text{m}^2}{\text{s}^2}]" />
-                        {energyChart}
-                    </div>
-
-                    <div className='w-full text-right flex flex-col gap-3'>
-                        <InlineMath math="M\ [\frac{\text{kg} \cdot \text{m}^2}{\text{s}^2}]" />
-                        {torqueChart}
-                    </div>
-                </div>
-
-            </Overlay>
         </div>
     )
 }
