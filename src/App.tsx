@@ -285,7 +285,7 @@ function App() {
         scene.current!.environmentTexture = hdri;
         scene.current!.environmentBRDFTexture = hdri;
 
-        const skybox = new BabylonJS.PhotoDome("skybox", "/phitop/burnt_warehouse_4k.hdr", {}, scene.current!)
+        const skybox = new BabylonJS.PhotoDome("skybox", "/phitop/burnt_warehouse_2k.hdr", {}, scene.current!)
         skybox.infiniteDistance = true;
 
         const sunPosition = new BabylonJS.Vector3(1,10,1).normalize().scale(5);
