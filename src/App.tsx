@@ -420,7 +420,7 @@ function App() {
                             <i className="bi bi-arrow-counterclockwise"></i>
                         </Button>
                     </div>
-                    <ToggleButton onClick={() => { overlayHandle.current?.toggle() }} className='pointer-events-auto'>
+                    <ToggleButton onClick={() => { overlayHandle.current?.toggle() }} className='pointer-events-auto hidden md:block'>
                         <i className="bi bi-layout-sidebar-reverse"></i>
                     </ToggleButton>
                 </div>
