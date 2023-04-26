@@ -4,9 +4,13 @@
 
 body {
     height: 100vh;
+    height: -moz-fill-available;
     height: -webkit-fill-available;
+    height: fill-available;
     min-height: 100vh;
+    min-height: -moz-fill-available;
     min-height: -webkit-fill-available;
+    min-height: fill-available;
     width: 100%;
 }
 

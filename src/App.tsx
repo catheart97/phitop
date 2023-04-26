@@ -7,6 +7,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 import { CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts';
 import { InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
+import { ITop } from './ITop';
+import { Rattleback } from './Rattleback';
 
 type LicenseInfo = {
     department: string,
@@ -27,9 +29,9 @@ const LicenseView = (props: {
 }) => {
     return (
         <div className='p-2 pl-5 pr-5'>
-            {props.info.name} <br/>
+            {props.info.name} <br />
             {
-                (props.info.author != "n/a") ? <>{props.info.author} <br/></> : <></>
+                (props.info.author != "n/a") ? <>{props.info.author} <br /></> : <></>
             }
             {props.info.licenseType}
         </div>
@@ -52,21 +54,21 @@ const LicenseOverview = () => {
     return (
         <>
             <div className='flex justify-between text-neutral-500/60 items-center'>
-                    
-                    <FullButton 
-                        onClick={() => {
-                            setAnimationState(
-                                animationState == 0 ? (mainRef.current!.scrollHeight) : 0
-                            )
-                        }}
-                    >
-                        <div>Show/Hide OS Licenses</div>
-                        <i className={'bi bi-arrow-down transition-[transform] duration-300 ease-in-out ' + (animationState == 0 ? "rotate-0" : "rotate-180")}></i>
-                    </FullButton>
+
+                <FullButton
+                    onClick={() => {
+                        setAnimationState(
+                            animationState == 0 ? (mainRef.current!.scrollHeight) : 0
+                        )
+                    }}
+                >
+                    <div>Show/Hide OS Licenses</div>
+                    <i className={'bi bi-arrow-down transition-[transform] duration-300 ease-in-out ' + (animationState == 0 ? "rotate-0" : "rotate-180")}></i>
+                </FullButton>
             </div>
-            <div ref={mainRef} className={'flex overflow-hidden rounded-2xl bg-neutral-50/80 transition-all duration-300 text-left flex-col ease-in-out'} style={{height: animationState}}>
+            <div ref={mainRef} className={'flex overflow-hidden rounded-2xl bg-neutral-50/80 transition-all duration-300 text-left flex-col ease-in-out'} style={{ height: animationState }}>
                 {
-                    licenses.map((license, idx) => <LicenseView info={license} key={idx} />) 
+                    licenses.map((license, idx) => <LicenseView info={license} key={idx} />)
                 }
             </div>
         </>
@@ -78,8 +80,8 @@ const FullButton = (props: {
     onClick?: () => void
 }) => {
     return (
-        <button 
-            className="transition-all hover:bg-neutral-500 hover:text-neutral-50 border-neutral-500/60 p-2 text-neutral-800 duration-300 pl-5 pr-5 rounded-full w-full flex justify-between" 
+        <button
+            className="transition-all hover:bg-neutral-500 hover:text-neutral-50 border-neutral-500/60 p-2 text-neutral-800 duration-300 pl-5 pr-5 rounded-full w-full flex justify-between"
             onClick={props.onClick}
         >
             {props.children}
@@ -87,14 +89,16 @@ const FullButton = (props: {
     )
 }
 
-const Button = (props: {
+type ButtonProps = {
     children?: React.ReactNode
     onClick?: () => void
     className?: string
-}) => {
+}
+
+const Button = (props: ButtonProps) => {
     return (
-        <button 
-            className={"transition-all bg-neutral-50/60 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500/60 p-2 text-neutral-500/60 duration-300 ease-in-out pl-3 pr-3 rounded-full " + props.className} 
+        <button
+            className={"transition-all bg-neutral-50/60 hover:bg-neutral-500 hover:text-neutral-50 border-2 border-neutral-500/60 p-2 text-neutral-500/60 duration-300 ease-in-out pl-3 pr-3 rounded-full " + props.className}
             onClick={props.onClick}
         >
             {props.children}
@@ -113,10 +117,10 @@ const ToggleButton = (props: {
     return (
         <button 
             className={"transition-all border-2  duration-300 ease-in-out pl-3 pr-3 border-neutral-500/60 rounded-full p-2 " + (
-                toggled 
-                ? "hover:bg-neutral-50 bg-neutral-500/60 text-neutral-50/60  hover:text-neutral-500" 
-                : "bg-neutral-50/60 hover:bg-neutral-500 hover:text-neutral-50 text-neutral-500/60"
-            ) + " " + props.className} 
+                toggled
+                    ? "hover:bg-neutral-50 bg-neutral-500/60 text-neutral-50/60  hover:text-neutral-500"
+                    : "bg-neutral-50/60 hover:bg-neutral-500 hover:text-neutral-50 text-neutral-500/60"
+            ) + " " + props.className}
             onClick={() => {
                 setToggled(!toggled)
                 props.onClick && props.onClick();
@@ -124,6 +128,25 @@ const ToggleButton = (props: {
         >
             {props.children}
         </button>
+    )
+}
+
+const DropDown = (props: {
+    children?: React.ReactElement<ButtonProps>[]
+}) => {
+
+    const [open, setOpen] = React.useState(false);
+    const divRef = React.createRef<HTMLDivElement>();
+
+    return (
+        <div className='flex flex-col justify-end items-end transition-[height] ease-in-out duration-200 overflow-hidden pointer-events-auto gap-2' style={{
+            height: (open ? divRef.current?.scrollHeight : "3rem")
+        }} ref={divRef}>
+            {props.children}
+            <ToggleButton onClick={() => { setOpen(!open) }}>
+                <i className="bi bi-three-dots-vertical"></i>
+            </ToggleButton>
+        </div>
     )
 }
 
@@ -137,11 +160,11 @@ type OverlayProps = {
     children?: React.ReactNode
 }
 
-const OverlayRenderer : React.ForwardRefRenderFunction<OverlayHandle, OverlayProps> = (props, env) => {
+const OverlayRenderer: React.ForwardRefRenderFunction<OverlayHandle, OverlayProps> = (props, env) => {
 
     const [animationState, setAnimationState] = React.useState(false)
 
-    const handle : OverlayHandle = {
+    const handle: OverlayHandle = {
         toggle() {
             setAnimationState(!animationState);
         },
@@ -158,7 +181,7 @@ const OverlayRenderer : React.ForwardRefRenderFunction<OverlayHandle, OverlayPro
     return (
         <div className={'transition-[padding] ease-in-out duration-300 h-full w-fit pointer-events-auto pt-4 pb-4 ' + (animationState ? "pr-4" : "pr-0")}>
             <div className={'max-w-96 h-full bg-neutral-50/80 flex flex-col items-stretch text-center top-0 bottom-0 overflow-hidden border-neutral-500/60 transition-all duration-300 ease-in-out rounded-2xl gap-4 ' + (animationState ? "w-96 border-2" : "w-0 border-0")}>
-                <div className='m-2 p-3 overflow-y-scroll'>
+                <div className='m-2 p-3 overflow-y-scroll h-full flex flex-col gap-2'>
                     {props.children}
                 </div>
             </div>
@@ -172,17 +195,19 @@ function App() {
 
     const canvas = React.createRef<HTMLCanvasElement>();
     const overlayHandle = React.createRef<OverlayHandle>();
-    
+
     const engine = React.useRef<BabylonJS.Engine>();
     const scene = React.useRef<BabylonJS.Scene>();
-    const phitop = React.useRef<PhiTop>();
+    const top = React.useRef<ITop>();
+    const generator = React.useRef<BabylonJS.ShadowGenerator>();
 
     const [velocityChart, setVelocityChart] = React.useState<JSX.Element>();
     const [angularVelocityChart, setAngularVelocityChart] = React.useState<JSX.Element>();
     const [energyChart, setEnergyChart] = React.useState<JSX.Element>();
     const [torqueChart, setTorqueChart] = React.useState<JSX.Element>();
 
-    const [ simulate, setSimulate ] = React.useState(false);
+    const [simulate, setSimulate] = React.useState(false);
+    const simulateState = React.useRef(simulate);
 
     const updateCharts = () => {
         setVelocityChart(<></>);
@@ -192,14 +217,31 @@ function App() {
 
         setTimeout(() => {
 
-            const data = phitop.current!.data;
+            const data = top.current!.simulationData.map((val, idx) => {
+                return {
+                    t: idx * 0.01,
+                    vx: val.velocity.x,
+                    vy: val.velocity.y,
+                    vz: val.velocity.z,
+                    wx: val.angularVelocity.x,
+                    wy: val.angularVelocity.y,
+                    wz: val.angularVelocity.z,
+                    tx: val.torque.x,
+                    ty: val.torque.y,
+                    tz: val.torque.z,
+                    Ekin: val.kineticEnergy,
+                    Epot: val.potentialEnergy,
+                    Erot: val.rotationalEnergy,
+                    E: val.totalEnergy
+                }
+            });
 
             setVelocityChart(
                 <LineChart width={300} height={200} data={data}>
-                    <XAxis dataKey="t" tickFormatter={(val : number, _) => { return val.toFixed(1);}}/>
-                    <YAxis/>
-                    <CartesianGrid stroke="#090909" strokeDasharray="5 5"/>
-                    <Tooltip/>
+                    <XAxis dataKey="t" tickFormatter={(val: number, _) => { return val.toFixed(1); }} />
+                    <YAxis />
+                    <CartesianGrid stroke="#090909" strokeDasharray="5 5" />
+                    <Tooltip />
                     <Line type="monotone" dataKey="vx" stroke="#f87171" dot={false} />
                     <Line type="monotone" dataKey="vy" stroke="#4ade80" dot={false} />
                     <Line type="monotone" dataKey="vz" stroke="#38bdf8" dot={false} />
@@ -207,10 +249,10 @@ function App() {
             )
             setAngularVelocityChart(
                 <LineChart width={300} height={200} data={data}>
-                    <XAxis dataKey="t" tickFormatter={(val : number, _) => { return val.toFixed(1);}}/>
-                    <YAxis/>
-                    <CartesianGrid stroke="#090909" strokeDasharray="5 5"/>
-                    <Tooltip/>
+                    <XAxis dataKey="t" tickFormatter={(val: number, _) => { return val.toFixed(1); }} />
+                    <YAxis />
+                    <CartesianGrid stroke="#090909" strokeDasharray="5 5" />
+                    <Tooltip />
                     <Line type="monotone" dataKey="wx" stroke="#f87171" dot={false} />
                     <Line type="monotone" dataKey="wy" stroke="#4ade80" dot={false} />
                     <Line type="monotone" dataKey="wz" stroke="#38bdf8" dot={false} />
@@ -218,10 +260,10 @@ function App() {
             )
             setEnergyChart(
                 <LineChart width={300} height={200} data={data}>
-                    <XAxis dataKey="t" tickFormatter={(val : number, _) => { return val.toFixed(1)}} />
-                    <YAxis tickFormatter={(val, idx) => { return (val).toFixed(1) }}/>
-                    <CartesianGrid stroke="#090909" strokeDasharray="5 5"/>
-                    <Tooltip/>
+                    <XAxis dataKey="t" tickFormatter={(val: number, _) => { return val.toFixed(1) }} />
+                    <YAxis tickFormatter={(val, idx) => { return (val).toFixed(1) }} />
+                    <CartesianGrid stroke="#090909" strokeDasharray="5 5" />
+                    <Tooltip />
                     <Line type="monotone" dataKey="Ekin" stroke="#f87171" dot={false} />
                     <Line type="monotone" dataKey="Erot" stroke="#4ade80" dot={false} />
                     <Line type="monotone" dataKey="Epot" stroke="#fbbf24" dot={false} />
@@ -230,10 +272,10 @@ function App() {
             )
             setTorqueChart(
                 <LineChart width={300} height={200} data={data}>
-                    <XAxis dataKey="t" tickFormatter={(val : number, _) => { return val.toFixed(1)}} />
-                    <YAxis/>
-                    <CartesianGrid stroke="#090909" strokeDasharray="5 5"/>
-                    <Tooltip/>
+                    <XAxis dataKey="t" tickFormatter={(val: number, _) => { return val.toFixed(1) }} />
+                    <YAxis />
+                    <CartesianGrid stroke="#090909" strokeDasharray="5 5" />
+                    <Tooltip />
                     <Line type="monotone" dataKey="tx" stroke="#f87171" dot={false} />
                     <Line type="monotone" dataKey="ty" stroke="#4ade80" dot={false} />
                     <Line type="monotone" dataKey="tz" stroke="#38bdf8" dot={false} />
@@ -263,11 +305,13 @@ function App() {
             BabylonJS.Vector3.Zero(), scene.current
         )
         camera.minZ = 0.1;
-        camera.target.y = phitop.current!.scale * PHI;
+        camera.target.y = 0.16 * PHI;
         scene.current?.onBeforeRenderObservable.add(() => {
-            const p = phitop.current!.getAbsolutePosition()!.clone();
-            p.y = phitop.current!.scale * PHI;
-            camera.target = p;
+            const p = top.current?.getAbsolutePosition()!.clone();
+            if (p) {
+                p.y = 0.16 * PHI;
+                camera.target = p;
+            }
         })
         camera.attachControl(canvas.current!)
     }
@@ -288,7 +332,7 @@ function App() {
         const skybox = new BabylonJS.PhotoDome("skybox", "/phitop/burnt_warehouse_2k.hdr", {}, scene.current!)
         skybox.infiniteDistance = true;
 
-        const sunPosition = new BabylonJS.Vector3(1,10,1).normalize().scale(5);
+        const sunPosition = new BabylonJS.Vector3(1, 10, 1).normalize().scale(5);
 
         const light = new BabylonJS.HemisphericLight("skylight", BabylonJS.Vector3.Up(), scene.current!);
         light.intensity = .6;
@@ -305,27 +349,28 @@ function App() {
         sun.autoUpdateExtends = false;
         sun.shadowFrustumSize = 4;
         sun.position = sunPosition;
-        const generator = new BabylonJS.ShadowGenerator(1024, sun);
-        generator.addShadowCaster(phitop.current!.getChildMeshes(true)[0] as BabylonJS.Mesh);
-        generator.usePoissonSampling = false;
-        generator.bias = 0.001;
-        generator.blurKernel = 3;
-        generator.blurScale = 1;
-        generator.useExponentialShadowMap = true;
-        generator.useBlurExponentialShadowMap = false;
-        generator.useCloseExponentialShadowMap = true;
-        generator.useBlurCloseExponentialShadowMap = true;
-        generator.useContactHardeningShadow = true;
-        generator.setDarkness(0);
-        generator.recreateShadowMap();
+        generator.current = new BabylonJS.ShadowGenerator(1024, sun);
+        generator.current.addShadowCaster(top.current!.getChildMeshes(true)[0] as BabylonJS.Mesh);
+        generator.current.usePoissonSampling = false;
+        generator.current.bias = 0.001;
+        generator.current.blurKernel = 3;
+        generator.current.blurScale = 1;
+        generator.current.useExponentialShadowMap = true;
+        generator.current.useBlurExponentialShadowMap = false;
+        generator.current.useCloseExponentialShadowMap = true;
+        generator.current.useBlurCloseExponentialShadowMap = true;
+        generator.current.useContactHardeningShadow = true;
+        generator.current.setDarkness(0);
+        generator.current.recreateShadowMap();
 
         scene.current?.onBeforeRenderObservable.add(() => {
-            sun.position = sunPosition.add(phitop.current?.getAbsolutePosition()!);
+            sun.position = sunPosition.add(top.current?.getAbsolutePosition()!);
         })
     }
 
     const setupTop = () => {
-        phitop.current = new PhiTop("phitop", scene.current!);
+        top.current = new Rattleback("top", scene.current!);
+        // top.current = new HalfTop("halftop", scene.current!);
 
         const ground = BabylonJS.CreatePlane("ground", {
             width: 5,
@@ -364,14 +409,15 @@ function App() {
         pipeline.grainEnabled = true;
         pipeline.grain.intensity = 5;
         pipeline.grain.animated = true;
-
     }
 
     const setupLoop = () => {
+        resizeCanvas();
         engine.current?.runRenderLoop(() => {
             scene.current?.render()
         })
         window.addEventListener("resize", () => {
+            resizeCanvas();
             engine.current!.resize();
         })
     }
@@ -380,26 +426,37 @@ function App() {
         initEngine();
         initScene();
         setupTop();
-        setupCamera(); 
+        setupCamera();
         setupEnvironment();
         setupPost();
         setupLoop();
-        scene.current?.onReadyObservable.addOnce(() => {
+        scene.current!.registerBeforeRender(() => {
+            top.current?.tick(simulateState.current);
+        })
+        scene.current!.onReadyObservable.addOnce(() => {
             updateCharts();
             engine.current!.hideLoadingUI();
         })
     }
 
-    const toggleSimulation = () => { setSimulate(!simulate); phitop.current!.simulate = !simulate; }
+    const updateSimulate = (s: boolean) => {
+        setSimulate(s);
+        simulateState.current = s;
+    }
 
     React.useEffect(() => {
+        updateSimulate(false);
         init();
-
         return () => {
             engine.current?.hideLoadingUI();
             engine.current?.stopRenderLoop();
         }
     }, []);
+
+    const resizeCanvas = () => {
+        engine.current!.getRenderingCanvas()!.width = window.innerWidth;
+        engine.current!.getRenderingCanvas()!.height = window.innerHeight;
+    }
 
     return (
         <div className="root overflow-hidden relative">
@@ -409,20 +466,54 @@ function App() {
 
             <div className='absolute top-0 left-0 right-0 bottom-0 flex pointer-events-none items-end'>
                 <div className='grow h-fit flex p-4 gap-3 justify-between'>
-                    <div className='flex gap-3'>
-                        <Button onClick={toggleSimulation} className='pointer-events-auto'>
+                    <div className='flex gap-3 flex-col justify-end'>
+                        <Button onClick={() => { updateSimulate(!simulateState.current) }} className='pointer-events-auto'>
                             {
                                 simulate ? <i className='bi bi-pause-fill' />
-                                         : <i className='bi bi-play-fill'  />
+                                    : <i className='bi bi-play-fill' />
                             }
                         </Button>
-                        <Button onClick={() => { phitop.current?.reset(); }} className='pointer-events-auto'>
+                        <Button onClick={() => { top.current?.reset(); }} className='pointer-events-auto'>
                             <i className="bi bi-arrow-counterclockwise"></i>
                         </Button>
                     </div>
-                    <ToggleButton onClick={() => { overlayHandle.current?.toggle() }} className='pointer-events-auto hidden md:block'>
-                        <i className="bi bi-layout-sidebar-reverse"></i>
-                    </ToggleButton>
+                    <div className='flex gap-3 justify-end items-end'>
+
+                        <DropDown>
+                            <Button className='pointer-events-auto group flex h-11 items-center justify-center' onClick={() => {
+                                if (top.current) {
+                                    updateSimulate(false);
+                                    generator.current?.removeShadowCaster(
+                                        top.current.getChildMeshes(true)[0] as BabylonJS.Mesh
+                                    );
+                                    scene.current?.removeTransformNode(top.current)
+                                    top.current.dispose();
+                                    top.current = undefined;
+                                }
+                                top.current = new PhiTop("top", scene.current!);
+                                generator.current?.addShadowCaster(top.current.getChildMeshes(true)[0] as BabylonJS.Mesh);
+                            }}>
+                                <div className='w-32'>Φ-Top</div>
+                            </Button>
+                            <Button className='pointer-events-auto group flex h-11 items-center justify-center' onClick={() => {
+                                if (top.current) {
+                                    updateSimulate(false);
+                                    generator.current?.removeShadowCaster(top.current.getChildMeshes(true)[0] as BabylonJS.Mesh);
+                                    scene.current!.removeTransformNode(top.current);
+                                    top.current.dispose();
+                                    top.current = undefined;
+                                }
+                                top.current = new Rattleback("top", scene.current!);
+                                generator.current?.addShadowCaster(top.current.getChildMeshes(true)[0] as BabylonJS.Mesh);
+                            }}>
+                                <div className='w-32'>Rattleback</div>
+                            </Button>
+                        </DropDown>
+
+                        <ToggleButton onClick={() => { overlayHandle.current?.toggle() }} className='pointer-events-auto hidden md:block'>
+                            <i className="bi bi-layout-sidebar-reverse"></i>
+                        </ToggleButton>
+                    </div>
                 </div>
 
                 <Overlay
@@ -456,6 +547,7 @@ function App() {
                             {torqueChart}
                         </div>
                     </div>
+                    <div className='grow'></div>
 
                     <div className='w-full border-t-2 pt-3 gap-1 flex flex-col border-neutral-500'>
 
