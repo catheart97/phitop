@@ -42,7 +42,7 @@ export class Rattleback extends ITop {
         scene.removeMesh(ellipsoid);
         scene.removeMesh(box);
 
-        const centerOfMass = new BabylonJS.Vector3(0, - ry / 3, 0);
+        const centerOfMass = new BabylonJS.Vector3(0, 2 * ry / 3, 0);
 
         let momentOfInertia = new BabylonJS.Matrix();
         let tx = 3 * mass / 2 * (ry * ry + rz * rz);
@@ -115,7 +115,7 @@ export class Rattleback extends ITop {
 
     reset() {
         super.reset();
-        this.rotation = new BabylonJS.Vector3(0, 0, 0.1);
+        this.rotate(BabylonJS.Vector3.Forward(), 0.1);
         this.position = BabylonJS.Vector3.Zero();
         this.angularVelocity = new BabylonJS.Vector3(0, 1, 0);
     }

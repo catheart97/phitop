@@ -48,7 +48,9 @@ export class PhiTop extends ITop {
 
     reset() {
         super.reset();
-        this.rotation = new BabylonJS.Vector3(0.0, 0.0, Math.PI / 2 + 0.1);
+        this.rotate(
+            BabylonJS.Vector3.Forward(), Math.PI / 2 + 0.1
+        )
         this.position = BabylonJS.Vector3.Zero();
         this.rotate(BabylonJS.Vector3.Up(), 0);
         this.angularVelocity = new BabylonJS.Vector3(0, 10 * Math.PI, 0)

@@ -1,10 +1,10 @@
 import * as BabylonJS from '@babylonjs/core'
 
-let _material : BabylonJS.PBRMetallicRoughnessMaterial | undefined = undefined;
+let _material: BabylonJS.PBRMetallicRoughnessMaterial | undefined = undefined;
 
 export const TopMaterial = (scene: BabylonJS.Scene) => {
     if (_material && _material.getScene() == scene) return _material;
-    else  {
+    else {
         const material = new BabylonJS.PBRMetallicRoughnessMaterial("top#material", scene);
         material.roughness = 0.1;
         material.metallicRoughnessTexture = new BabylonJS.Texture("Metal012_1K-JPG/Metal012_1K_Metalness.jpg", scene)
@@ -48,12 +48,13 @@ export abstract class ITop extends BabylonJS.TransformNode {
         return this._simulationData;
     }
 
-    public simulationStepsPerFrame : number = 100;
+    public simulationStepsPerFrame: number = 100;
 
     protected constructor(name: string, scene: BabylonJS.Scene, mass: number, momentOfInertia: BabylonJS.Matrix) {
         super(name, scene);
         this.mass = mass;
         this.momentOfInertia = momentOfInertia;
+        this.rotationQuaternion = BabylonJS.Quaternion.Identity();
         this.reset();
     }
 
@@ -64,16 +65,19 @@ export abstract class ITop extends BabylonJS.TransformNode {
         this.angularVelocity = BabylonJS.Vector3.Zero();
         this.velocity = BabylonJS.Vector3.Zero();
         this._time = 0;
+        this.rotationQuaternion = BabylonJS.Quaternion.Identity();
     }
 
     tick(simulate: boolean) {
+
         if (simulate) {
 
             const dt = (this.getScene().getEngine().getDeltaTime() / 1000) / this.simulationStepsPerFrame;
 
             for (let i = 0; i < this.simulationStepsPerFrame; ++i) {
 
-                const world = this.getWorldMatrix().getRotationMatrix();
+                const world = new BabylonJS.Matrix();
+                this.rotationQuaternion!.toRotationMatrix(world);
 
                 // compute contact point
                 const pWorld = this.contactPoint(world);
@@ -98,14 +102,12 @@ export abstract class ITop extends BabylonJS.TransformNode {
                     ) / dt - Fg.y - Fr.y,
                     0
                 );
-                // Fn = Fg.scale(-1);
 
                 // compute torques
                 const torque = BabylonJS.Vector3.Cross(Fn.scale(-1).add(Fr), pWorld);
                 const inertia = world.transpose().multiply(this.momentOfInertia.clone()).multiply(world);
 
                 if (this.addCustomTorque) torque.addInPlace(this.customTorque(dt, Fr, Fg, Fn, pWorld, inertia));
-
 
                 // compute accelerations
                 const acceleration = Fg.add(Fn).add(Fr).scale(1 / this.mass);
@@ -122,23 +124,18 @@ export abstract class ITop extends BabylonJS.TransformNode {
                     inertia.clone().invert()
                 )
 
-                // explicit euler for velocities
+                // integrate using euler
                 this.angularVelocity.addInPlace(angularAcceleration.scale(dt));
                 this.velocity.addInPlace(acceleration.scale(dt));
 
-                // apply speeds using euler
                 this.position.addInPlace(this.velocity.scale(dt));
-                this.rotate(
+                this.rotationQuaternion = BabylonJS.Quaternion.RotationAxis(
                     this.angularVelocity.normalizeToNew(),
-                    this.angularVelocity.length() * dt,
-                    BabylonJS.Space.WORLD
-                )
-
-                // console.log(this.position.y, -pWorld.y)
+                    this.angularVelocity.length() * dt
+                ).multiplyInPlace(this.rotationQuaternion!);
 
                 // save graph data
                 this._time += dt;
-
                 if (i == this.simulationStepsPerFrame - 1) {
 
                     const Ekin = 0.5 * this.velocity.lengthSquared() * this.mass;
@@ -171,11 +168,11 @@ export abstract class ITop extends BabylonJS.TransformNode {
     }
 
     abstract customTorque(
-        dt : number, 
-        Fr : BabylonJS.Vector3, 
-        Fg: BabylonJS.Vector3, 
-        Fn: BabylonJS.Vector3, 
-        pWorld: BabylonJS.Vector3, 
+        dt: number,
+        Fr: BabylonJS.Vector3,
+        Fg: BabylonJS.Vector3,
+        Fn: BabylonJS.Vector3,
+        pWorld: BabylonJS.Vector3,
         inertia: BabylonJS.Matrix
-    ) : BabylonJS.Vector3;
+    ): BabylonJS.Vector3;
 }
