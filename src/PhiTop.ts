@@ -37,6 +37,7 @@ export class PhiTop extends ITop {
 
         mesh.parent = this;
         this.scale = scale;
+        this.friction = 0.1;
     }
 
     contactPoint(worldRotation: BabylonJS.Matrix): BabylonJS.Vector3 {
@@ -53,7 +54,7 @@ export class PhiTop extends ITop {
         )
         this.position = BabylonJS.Vector3.Zero();
         this.rotate(BabylonJS.Vector3.Up(), 0);
-        this.angularVelocity = new BabylonJS.Vector3(0, 10 * Math.PI, 0)
+        this.angularVelocity = new BabylonJS.Vector3(0, 20 * Math.PI, 0)
     }
 
     customTorque(

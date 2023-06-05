@@ -7,13 +7,19 @@ export class Rattleback extends ITop {
     private centerOfMass: BabylonJS.Vector3;
     private r: BabylonJS.Vector3;
 
+    private m1: number;
+    private m2: number;
+    private r1: BabylonJS.Vector3;
+    private r2: BabylonJS.Vector3;
+    private direction: number = -1;
+
     constructor(name: string, scene: BabylonJS.Scene) {
 
         const mass = 0.25;
         const scale = 0.16848;
 
         const rx = scale * 4;
-        const ry = scale * 0.5;
+        const ry = scale * 0.4;
         const rz = scale;
 
         const ellipsoid = BabylonJS.CreateSphere(
@@ -42,27 +48,49 @@ export class Rattleback extends ITop {
         scene.removeMesh(ellipsoid);
         scene.removeMesh(box);
 
-        const centerOfMass = new BabylonJS.Vector3(0, 2 * ry / 3, 0);
+        const steiner = ( offset: BabylonJS.Vector3, mass: number ) => {
+            const negDyad = dyad(
+                offset, offset
+            ).scale(-1);
+            const dotIdentity = BabylonJS.Matrix.Identity().scale(
+                BabylonJS.Vector3.Dot(offset, offset)
+            );
+            const t = dotIdentity.add(negDyad);
+            return t.scale(mass);
+        }
+
+        const m1 = 0.05;
+        const m2 = 0.4;
+        const r1 = new BabylonJS.Vector3(-0.8 * rx, -0.8 * ry, 0); 
+        const r2 = new BabylonJS.Vector3(0.8 * rx, 0.8 * ry, 0);
+
+        const centerOfMass = new BabylonJS.Vector3(0, ry / 4, 0);
 
         let momentOfInertia = new BabylonJS.Matrix();
-        let tx = 3 * mass / 2 * (ry * ry + rz * rz);
-        let ty = 3 * mass / 2 * (rx * rx + rz * rz);
-        let tz = 3 * mass / 2 * (rx * rx + ry * ry);
+        let tx = (m1 + m2 + mass) / 5 * (ry * ry + rz * rz);
+        let ty = (m1 + m2 + mass) / 5 * (rx * rx + rz * rz);
+        let tz = (m1 + m2 + mass) / 5 * (rx * rx + ry * ry);
         momentOfInertia.setRowFromFloats(0, tx, 0, 0, 0);
         momentOfInertia.setRowFromFloats(1, 0, ty, 0, 0);
         momentOfInertia.setRowFromFloats(2, 0, 0, tz, 0);
         momentOfInertia.setRowFromFloats(3, 0, 0, 0, 1);
 
-        const tCenterOfMass = centerOfMass.clone();
-        const negDyad = dyad(
-            tCenterOfMass, tCenterOfMass
-        ).scale(-1);
-        const dotIdentity = BabylonJS.Matrix.Identity().scale(
-            BabylonJS.Vector3.Dot(tCenterOfMass, tCenterOfMass)
-        );
-        const t = dotIdentity.add(negDyad);
+        // const r = new BabylonJS.Matrix();
+        // BabylonJS.Quaternion.RotationAxis(
+        //     BabylonJS.Vector3.Up(),
+        //     -Math.PI / 8
+        // ).toRotationMatrix(r)
+
+        // momentOfInertia = BabylonJS.Matrix.Transpose(r).multiply(momentOfInertia).multiply(r);
+
         momentOfInertia = momentOfInertia.add(
-            t.scale(mass)
+            steiner(centerOfMass.clone(), mass)
+        )
+
+        momentOfInertia = momentOfInertia.add(
+            steiner(r1, m1)
+        ).add(
+            steiner(r2, m2)
         )
 
         super(name, scene, mass, momentOfInertia);
@@ -70,28 +98,17 @@ export class Rattleback extends ITop {
         mesh.position = centerOfMass;
         mesh.parent = this;
         this.centerOfMass = centerOfMass;
-        this.addCustomTorque = false;
-        this.simulationStepsPerFrame = 1;
+        this.addCustomTorque = true;
+        this.simulationStepsPerFrame = 10;
         this.r = new BabylonJS.Vector3(rx, ry, rz);
-        this.simulationStepsPerFrame = 1000;
+        this.simulationStepsPerFrame = 1;
+        this.m1 = m1;
+        this.m2 = m2;
+        this.r1 = r1;
+        this.r2 = r2;
+        this.friction = 0.99;
 
-        // scene.registerBeforeRender(() => {
-        //     if (this) {
-        //         this.rotate(
-        //             BabylonJS.Vector3.Left(),
-        //             0.01
-        //         );
-        //         this.rotate(
-        //             BabylonJS.Vector3.Forward(),
-        //             0.005
-        //         );
-        //         this.rotate(
-        //             BabylonJS.Vector3.Up(),
-        //             0.003
-        //         );
-        //         this.position.y = this.contactPoint(this.getWorldMatrix().getRotationMatrix()).y;
-        //     }
-        // })
+        this.reset();
     }
 
     contactPoint(worldRotation: BabylonJS.Matrix): BabylonJS.Vector3 {
@@ -115,9 +132,9 @@ export class Rattleback extends ITop {
 
     reset() {
         super.reset();
-        this.rotate(BabylonJS.Vector3.Forward(), 0.1);
+        // this.rotate(BabylonJS.Vector3.Forward(), 0.0001);
         this.position = BabylonJS.Vector3.Zero();
-        this.angularVelocity = new BabylonJS.Vector3(0, 1, 0);
+        this.angularVelocity = new BabylonJS.Vector3(0, this.direction, 0);
     }
 
     customTorque(
@@ -128,10 +145,19 @@ export class Rattleback extends ITop {
         pWorld: BabylonJS.Vector3,
         inertia: BabylonJS.Matrix
     ): BabylonJS.Vector3 {
-        const torque = new BabylonJS.Vector3(0, 0, 0);
+        const torque = BabylonJS.Vector3.Zero();
+
+        torque.addInPlace(
+            BabylonJS.Vector3.Cross(BabylonJS.Vector3.Down().scale(this.m1), pWorld.subtract(this.r1))
+        )
+
+        torque.addInPlace(
+            BabylonJS.Vector3.Cross(BabylonJS.Vector3.Down().scale(this.m2), pWorld.subtract(this.r2))
+        )
+
         if (Fr.length() < 0.05) {
             torque.addInPlace(
-                this.angularVelocity.scale(-dt)
+                this.angularVelocity.scale(-dt*dt)
             )
         }
         return torque;

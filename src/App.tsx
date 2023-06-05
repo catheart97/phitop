@@ -9,6 +9,7 @@ import { InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 import { ITop } from './ITop';
 import { Rattleback } from './Rattleback';
+import { TippeTop } from './TippeTop';
 
 type LicenseInfo = {
     department: string,
@@ -353,14 +354,14 @@ function App() {
         generator.current.addShadowCaster(top.current!.getChildMeshes(true)[0] as BabylonJS.Mesh);
         generator.current.usePoissonSampling = false;
         generator.current.bias = 0.001;
-        generator.current.blurKernel = 3;
+        generator.current.blurKernel = 5;
         generator.current.blurScale = 1;
         generator.current.useExponentialShadowMap = true;
         generator.current.useBlurExponentialShadowMap = false;
         generator.current.useCloseExponentialShadowMap = true;
         generator.current.useBlurCloseExponentialShadowMap = true;
         generator.current.useContactHardeningShadow = true;
-        generator.current.setDarkness(0);
+        generator.current.setDarkness(.6);
         generator.current.recreateShadowMap();
 
         scene.current?.onBeforeRenderObservable.add(() => {
@@ -369,7 +370,7 @@ function App() {
     }
 
     const setupTop = () => {
-        top.current = new Rattleback("top", scene.current!);
+        top.current = new TippeTop("top", scene.current!);
         // top.current = new HalfTop("halftop", scene.current!);
 
         const ground = BabylonJS.CreatePlane("ground", {
@@ -387,6 +388,7 @@ function App() {
         ground.material = groundMaterial;
         ground.rotation.x = Math.PI / 2;
         ground.receiveShadows = true;
+        // ground.visibility = 0;
     }
 
     const setupPost = () => {
@@ -473,7 +475,15 @@ function App() {
                                     : <i className='bi bi-play-fill' />
                             }
                         </Button>
-                        <Button onClick={() => { top.current?.reset(); }} className='pointer-events-auto'>
+                        <Button onClick={() => { 
+                            if (simulate) {
+                                updateSimulate(false);
+                                top.current?.reset();
+                            }
+                            else {
+                                top.current?.reset(); 
+                            }
+                        }} className='pointer-events-auto'>
                             <i className="bi bi-arrow-counterclockwise"></i>
                         </Button>
                     </div>
@@ -493,7 +503,7 @@ function App() {
                                 top.current = new PhiTop("top", scene.current!);
                                 generator.current?.addShadowCaster(top.current.getChildMeshes(true)[0] as BabylonJS.Mesh);
                             }}>
-                                <div className='w-32'>Φ-Top</div>
+                                <div className='w-32 md:w-64'>Φ-Top</div>
                             </Button>
                             <Button className='pointer-events-auto group flex h-11 items-center justify-center' onClick={() => {
                                 if (top.current) {
@@ -506,7 +516,20 @@ function App() {
                                 top.current = new Rattleback("top", scene.current!);
                                 generator.current?.addShadowCaster(top.current.getChildMeshes(true)[0] as BabylonJS.Mesh);
                             }}>
-                                <div className='w-32'>Rattleback</div>
+                                <div className='w-32 md:w-64'>Rattleback (Unfinished)</div>
+                            </Button>
+                            <Button className='pointer-events-auto group flex h-11 items-center justify-center' onClick={() => {
+                                if (top.current) {
+                                    updateSimulate(false);
+                                    generator.current?.removeShadowCaster(top.current.getChildMeshes(true)[0] as BabylonJS.Mesh);
+                                    scene.current!.removeTransformNode(top.current);
+                                    top.current.dispose();
+                                    top.current = undefined;
+                                }
+                                top.current = new TippeTop("top", scene.current!);
+                                generator.current?.addShadowCaster(top.current.getChildMeshes(true)[0] as BabylonJS.Mesh);
+                            }}>
+                                <div className='w-32 md:w-64'>Tippe Top (Unfinished)</div>
                             </Button>
                         </DropDown>
 
