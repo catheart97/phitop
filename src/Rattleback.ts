@@ -2,6 +2,17 @@ import * as BabylonJS from '@babylonjs/core'
 import { ITop, TopMaterial } from './ITop';
 import { dyad } from './Tools';
 
+export const steiner = ( offset: BabylonJS.Vector3, mass: number ) => {
+    const negDyad = dyad(
+        offset, offset
+    ).scale(-1);
+    const dotIdentity = BabylonJS.Matrix.Identity().scale(
+        BabylonJS.Vector3.Dot(offset, offset)
+    );
+    const t = dotIdentity.add(negDyad);
+    return t.scale(mass);
+}
+
 export class Rattleback extends ITop {
 
     private centerOfMass: BabylonJS.Vector3;
@@ -47,17 +58,6 @@ export class Rattleback extends ITop {
 
         scene.removeMesh(ellipsoid);
         scene.removeMesh(box);
-
-        const steiner = ( offset: BabylonJS.Vector3, mass: number ) => {
-            const negDyad = dyad(
-                offset, offset
-            ).scale(-1);
-            const dotIdentity = BabylonJS.Matrix.Identity().scale(
-                BabylonJS.Vector3.Dot(offset, offset)
-            );
-            const t = dotIdentity.add(negDyad);
-            return t.scale(mass);
-        }
 
         const m1 = 0.05;
         const m2 = 0.4;
@@ -161,5 +161,15 @@ export class Rattleback extends ITop {
             )
         }
         return torque;
+    }
+
+    tick(simulate: boolean): void {
+        if (!simulate) {
+            this.rotationQuaternion = BabylonJS.Quaternion.RotationAxis(
+                BabylonJS.Vector3.Left(),
+                0.01
+            ).multiply(this.rotationQuaternion!)
+        }
+        super.tick(simulate);
     }
 }

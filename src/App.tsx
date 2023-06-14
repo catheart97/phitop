@@ -305,6 +305,12 @@ function App() {
             3,
             BabylonJS.Vector3.Zero(), scene.current
         )
+
+        // camera.mode = BabylonJS.Camera.ORTHOGRAPHIC_CAMERA;
+        camera.orthoTop = 1;
+        camera.orthoBottom = -1;
+        camera.orthoLeft = -1;
+        camera.orthoRight = 1;
         camera.minZ = 0.1;
         camera.target.y = 0.16 * PHI;
         scene.current?.onBeforeRenderObservable.add(() => {
@@ -529,7 +535,7 @@ function App() {
                                 top.current = new TippeTop("top", scene.current!);
                                 generator.current?.addShadowCaster(top.current.getChildMeshes(true)[0] as BabylonJS.Mesh);
                             }}>
-                                <div className='w-32 md:w-64'>Tippe Top (Unfinished)</div>
+                                <div className='w-32 md:w-64'>Tippe Top</div>
                             </Button>
                         </DropDown>
 
