@@ -47,7 +47,7 @@ const LicenseOverview = () => {
     const [licenses, setLicenses] = React.useState<LicenseInfo[]>([]);
 
     React.useEffect(() => {
-        fetch("/phitop/licenses.json").then(res => res.json()).then(data => {
+        fetch("/spinning-toys/licenses.json").then(res => res.json()).then(data => {
             setLicenses(data)
         })
     }, []);
@@ -325,7 +325,7 @@ function App() {
 
     const setupEnvironment = () => {
         const hdri = new BabylonJS.HDRCubeTexture(
-            "/phitop/burnt_warehouse_2k.hdr",
+            "/spinning-toys/burnt_warehouse_2k.hdr",
             scene.current!,
             128,
             false,
@@ -336,7 +336,7 @@ function App() {
         scene.current!.environmentTexture = hdri;
         scene.current!.environmentBRDFTexture = hdri;
 
-        const skybox = new BabylonJS.PhotoDome("skybox", "/phitop/burnt_warehouse_2k.hdr", {}, scene.current!)
+        const skybox = new BabylonJS.PhotoDome("skybox", "/spinning-toys/burnt_warehouse_2k.hdr", {}, scene.current!)
         skybox.infiniteDistance = true;
 
         const sunPosition = new BabylonJS.Vector3(1, 10, 1).normalize().scale(5);
