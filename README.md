@@ -1,6 +1,6 @@
-# Ф-Top Simulation
+# Spinning Toy Simulations
 
-An animation/simulation for the [Ф-Top](https://catheart97.github.io/phitop/).
+An animation/simulation for the Ф-Top and other spinning toys.
 
 #### Related Links
 * [http://www.thephitop.com](http://www.thephitop.com)
